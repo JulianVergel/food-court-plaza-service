@@ -1,6 +1,6 @@
 package com.foodcourt.plaza_service.domain.utils.validations;
 
-import com.foodcourt.plaza_service.application.dto.request.RestaurantRequestDto;
+import com.foodcourt.plaza_service.domain.model.Restaurant;
 
 import static com.foodcourt.plaza_service.domain.utils.constants.DomainConstants.*;
 
@@ -25,9 +25,9 @@ public class RestaurantValidator {
         }
     }
 
-    public static void validateRestaurantRequest(RestaurantRequestDto restaurantRequestDto) {
-        validateNit(restaurantRequestDto.getNit());
-        validatePhone(restaurantRequestDto.getPhone());
-        validateName(restaurantRequestDto.getName());
+    public static void validateRestaurantRequest(Restaurant restaurant) {
+        validateNit(restaurant.getNit());
+        validatePhone(restaurant.getPhone());
+        validateName(restaurant.getName());
     }
 }

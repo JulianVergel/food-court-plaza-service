@@ -1,7 +1,7 @@
 package com.foodcourt.plaza_service.infrastructure.input.rest;
 
 import com.foodcourt.plaza_service.application.dto.request.RestaurantRequestDto;
-import com.foodcourt.plaza_service.domain.api.IRestaurantServicePort;
+import com.foodcourt.plaza_service.application.handler.IRestaurantHandler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/restaurants")
 @RequiredArgsConstructor
 public class RestaurantRestController {
-    private final IRestaurantServicePort restaurantServicePort;
+    private final IRestaurantHandler restaurantHandler;
 
     @Operation(summary = "Crear un nuevo restaurante")
     @ApiResponses(value = {
@@ -27,7 +27,7 @@ public class RestaurantRestController {
     })
     @PostMapping("/")
     public ResponseEntity<Void> saveRestaurant(@RequestBody RestaurantRequestDto restaurantRequestDto) {
-        restaurantServicePort.saveRestaurant(restaurantRequestDto);
+        restaurantHandler.saveRestaurant(restaurantRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
