@@ -7,9 +7,11 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import static com.foodcourt.plaza_service.infrastructure.utils.constants.FeignConstants.*;
 
+@Component
 @RequiredArgsConstructor
 public class UserValidationAdapter implements IUserValidationPort {
 

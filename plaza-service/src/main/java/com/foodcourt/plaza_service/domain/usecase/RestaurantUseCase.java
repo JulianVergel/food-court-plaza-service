@@ -9,7 +9,9 @@ import com.foodcourt.plaza_service.domain.spi.IRestaurantPersistencePort;
 import com.foodcourt.plaza_service.domain.spi.IUserValidationPort;
 import com.foodcourt.plaza_service.domain.utils.validations.RestaurantValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
+@Service
 @RequiredArgsConstructor
 public class RestaurantUseCase implements IRestaurantServicePort {
     private final IRestaurantPersistencePort restaurantPersistencePort;
