@@ -10,4 +10,11 @@ public class DomainConstants {
     public static final String NIT_FIELD_MUST_BE_NUMERIC_MESSAGE = "El campo NIT debe ser numérico";
     public static final String PHONE_FIELD_INVALID_MESSAGE = "El teléfono debe tener un máximo de 13 caracteres y puede empezar con el símbolo '+'";
     public static final String NAME_FIELD_NOT_ONLY_NUMBERS_MESSAGE = "El nombre del restaurante no puede contener solo números";
+
+    public static final String RESTAURANT_NOT_FOUND_MESSAGE = "Restaurante no encontrado";
+    public static final String NOT_RESTAURANT_OWNER_MESSAGE = "Propietario del restaurante no coincide";
+
+    public static final String PRICE_DISH_NOT_VALID_MESSAGE = "El precio del plato debe ser mayor a cero";
+
+    public static final String CATEGORY_NOT_FOUND_MESSAGE = "La categoría especificada no fue encontrada";
 }
