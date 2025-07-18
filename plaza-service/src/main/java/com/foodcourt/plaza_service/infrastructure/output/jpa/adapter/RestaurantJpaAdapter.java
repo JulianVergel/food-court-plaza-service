@@ -8,6 +8,8 @@ import com.foodcourt.plaza_service.infrastructure.output.jpa.repository.IRestaur
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class RestaurantJpaAdapter implements IRestaurantPersistencePort {
@@ -19,5 +21,10 @@ public class RestaurantJpaAdapter implements IRestaurantPersistencePort {
     public void saveRestaurant(Restaurant restaurant) {
         RestaurantEntity restaurantEntity = restaurantEntityMapper.toEntity(restaurant);
         restaurantRepository.save(restaurantEntity);
+    }
+
+    @Override
+    public Optional<Restaurant> findById(Long id) {
+        return restaurantRepository.findById(id).map(restaurantEntityMapper::toRestaurant);
     }
 }
