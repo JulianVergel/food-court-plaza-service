@@ -7,10 +7,18 @@ import com.foodcourt.plaza_service.domain.spi.IUserValidationPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
+import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -68,5 +76,27 @@ class RestaurantUseCaseTest {
         assertThrows(IllegalArgumentException.class, () -> restaurantUseCase.saveRestaurant(restaurant));
 
         verify(restaurantPersistencePort, never()).saveRestaurant(any());
+    }
+
+    @Test
+    void testListRestaurants() {
+        int page = 0;
+        int size = 10;
+        Page<Restaurant> expectedPage = new PageImpl<>(Collections.singletonList(new Restaurant()));
+
+        when(restaurantPersistencePort.listAllRestaurants(any(Pageable.class))).thenReturn(expectedPage);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+
+        Page<Restaurant> result = restaurantUseCase.listRestaurants(page, size);
+
+        verify(restaurantPersistencePort).listAllRestaurants(pageableCaptor.capture());
+        Pageable capturedPageable = pageableCaptor.getValue();
+
+        assertEquals(page, capturedPageable.getPageNumber());
+        assertEquals(size, capturedPageable.getPageSize());
+        assertEquals(Sort.by("name").ascending(), capturedPageable.getSort());
+
+        assertEquals(expectedPage, result);
     }
 }
