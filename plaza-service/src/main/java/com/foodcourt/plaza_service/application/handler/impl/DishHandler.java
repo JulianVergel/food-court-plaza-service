@@ -3,11 +3,14 @@ package com.foodcourt.plaza_service.application.handler.impl;
 import com.foodcourt.plaza_service.application.dto.request.DishEnableDisableRequestDto;
 import com.foodcourt.plaza_service.application.dto.request.DishRequestDto;
 import com.foodcourt.plaza_service.application.dto.request.DishUpdateRequestDto;
+import com.foodcourt.plaza_service.application.dto.response.DishListResponseDto;
 import com.foodcourt.plaza_service.application.handler.IDishHandler;
 import com.foodcourt.plaza_service.application.mapper.request.IDishRequestMapper;
+import com.foodcourt.plaza_service.application.mapper.response.IDishResponseMapper;
 import com.foodcourt.plaza_service.domain.api.IDishServicePort;
 import com.foodcourt.plaza_service.domain.model.Dish;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +21,7 @@ public class DishHandler implements IDishHandler {
 
     private final IDishServicePort dishServicePort;
     private final IDishRequestMapper dishRequestMapper;
+    private final IDishResponseMapper dishResponseMapper;
 
     @Override
     public void saveDish(DishRequestDto dishRequestDto) {
@@ -34,5 +38,11 @@ public class DishHandler implements IDishHandler {
     @Override
     public void enableDisableDish(Long id, DishEnableDisableRequestDto dishEnableDisableRequestDto) {
         dishServicePort.enableDisableDish(id, dishEnableDisableRequestDto.isActive());
+    }
+
+    @Override
+    public Page<DishListResponseDto> listDishes(Long restaurantId, Long categoryId, int page, int size) {
+        Page<Dish> dishPage = dishServicePort.listDishes(restaurantId, categoryId, page, size);
+        return dishPage.map(dishResponseMapper::toListResponse);
     }
 }
