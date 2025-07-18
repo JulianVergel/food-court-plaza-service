@@ -12,6 +12,9 @@ import com.foodcourt.plaza_service.domain.spi.IDishPersistencePort;
 import com.foodcourt.plaza_service.domain.spi.IRestaurantPersistencePort;
 import com.foodcourt.plaza_service.domain.spi.IUserContextProviderPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import static com.foodcourt.plaza_service.domain.utils.constants.DomainConstants.PRICE_DISH_NOT_VALID_MESSAGE;
 
@@ -86,5 +89,11 @@ public class DishUseCase implements IDishServicePort {
         existingDish.setActive(enable);
 
         dishPersistencePort.saveDish(existingDish);
+    }
+
+    @Override
+    public Page<Dish> listDishes(Long restaurantId, Long categoryId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return dishPersistencePort.listDishesByRestaurant(restaurantId, categoryId, pageable);
     }
 }

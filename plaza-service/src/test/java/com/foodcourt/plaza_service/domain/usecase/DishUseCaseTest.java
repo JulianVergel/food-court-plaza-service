@@ -18,7 +18,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -243,5 +247,48 @@ class DishUseCaseTest {
         // Act & Assert
         assertThrows(DishNotFoundException.class, () -> dishUseCase.enableDisableDish(1L, true));
         verify(dishPersistencePort, never()).saveDish(any());
+    }
+
+    @Test
+    void testListDishes_WithCategoryFilter() {
+        // Arrange
+        Long restaurantId = 1L;
+        Long categoryId = 5L;
+        int page = 0;
+        int size = 10;
+        Page<Dish> expectedPage = new PageImpl<>(Collections.singletonList(new Dish()));
+
+        when(dishPersistencePort.listDishesByRestaurant(eq(restaurantId), eq(categoryId), any(Pageable.class)))
+                .thenReturn(expectedPage);
+
+        // Act
+        Page<Dish> result = dishUseCase.listDishes(restaurantId, categoryId, page, size);
+
+        // Assert
+        // Verificamos que se llamó al puerto de persistencia con los IDs correctos
+        verify(dishPersistencePort).listDishesByRestaurant(eq(restaurantId), eq(categoryId), any(Pageable.class));
+        // Verificamos que el resultado es el esperado
+        assertEquals(expectedPage, result);
+    }
+
+    @Test
+    void testListDishes_WithoutCategoryFilter() {
+        // Arrange
+        Long restaurantId = 1L;
+        int page = 0;
+        int size = 10;
+        Page<Dish> expectedPage = new PageImpl<>(Collections.singletonList(new Dish()));
+
+        // Configuramos el mock para esperar un categoryId nulo
+        when(dishPersistencePort.listDishesByRestaurant(eq(restaurantId), isNull(), any(Pageable.class)))
+                .thenReturn(expectedPage);
+
+        // Act
+        Page<Dish> result = dishUseCase.listDishes(restaurantId, null, page, size);
+
+        // Assert
+        // Verificamos que se llamó al puerto de persistencia con un categoryId nulo
+        verify(dishPersistencePort).listDishesByRestaurant(eq(restaurantId), isNull(), any(Pageable.class));
+        assertEquals(expectedPage, result);
     }
 }
