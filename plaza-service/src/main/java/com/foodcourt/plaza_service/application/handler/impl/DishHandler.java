@@ -1,5 +1,6 @@
 package com.foodcourt.plaza_service.application.handler.impl;
 
+import com.foodcourt.plaza_service.application.dto.request.DishEnableDisableRequestDto;
 import com.foodcourt.plaza_service.application.dto.request.DishRequestDto;
 import com.foodcourt.plaza_service.application.dto.request.DishUpdateRequestDto;
 import com.foodcourt.plaza_service.application.handler.IDishHandler;
@@ -28,5 +29,10 @@ public class DishHandler implements IDishHandler {
     public void updateDish(Long id, DishUpdateRequestDto dishUpdateRequestDto) {
         Dish dish = dishRequestMapper.toDish(dishUpdateRequestDto);
         dishServicePort.updateDish(id, dish);
+    }
+
+    @Override
+    public void enableDisableDish(Long id, DishEnableDisableRequestDto dishEnableDisableRequestDto) {
+        dishServicePort.enableDisableDish(id, dishEnableDisableRequestDto.isActive());
     }
 }

@@ -1,5 +1,6 @@
 package com.foodcourt.plaza_service.application.mapper.request;
 
+import com.foodcourt.plaza_service.application.dto.request.DishEnableDisableRequestDto;
 import com.foodcourt.plaza_service.application.dto.request.DishRequestDto;
 import com.foodcourt.plaza_service.application.dto.request.DishUpdateRequestDto;
 import com.foodcourt.plaza_service.domain.model.Dish;
