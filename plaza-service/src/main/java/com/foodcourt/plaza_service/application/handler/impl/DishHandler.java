@@ -1,6 +1,7 @@
 package com.foodcourt.plaza_service.application.handler.impl;
 
 import com.foodcourt.plaza_service.application.dto.request.DishRequestDto;
+import com.foodcourt.plaza_service.application.dto.request.DishUpdateRequestDto;
 import com.foodcourt.plaza_service.application.handler.IDishHandler;
 import com.foodcourt.plaza_service.application.mapper.request.IDishRequestMapper;
 import com.foodcourt.plaza_service.domain.api.IDishServicePort;
@@ -21,5 +22,11 @@ public class DishHandler implements IDishHandler {
     public void saveDish(DishRequestDto dishRequestDto) {
         Dish dish = dishRequestMapper.toDish(dishRequestDto);
         dishServicePort.saveDish(dish);
+    }
+
+    @Override
+    public void updateDish(Long id, DishUpdateRequestDto dishUpdateRequestDto) {
+        Dish dish = dishRequestMapper.toDish(dishUpdateRequestDto);
+        dishServicePort.updateDish(id, dish);
     }
 }

@@ -8,6 +8,8 @@ import com.foodcourt.plaza_service.infrastructure.output.jpa.repository.IDishJpa
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class DishJpaAdapter implements IDishPersistencePort {
@@ -19,5 +21,10 @@ public class DishJpaAdapter implements IDishPersistencePort {
     public void saveDish(Dish dish) {
         DishEntity dishEntity = dishEntityMapper.toDishEntity(dish);
         dishRepository.save(dishEntity);
+    }
+
+    @Override
+    public Optional<Dish> findById(Long id) {
+        return dishRepository.findById(id).map(dishEntityMapper::toDish);
     }
 }

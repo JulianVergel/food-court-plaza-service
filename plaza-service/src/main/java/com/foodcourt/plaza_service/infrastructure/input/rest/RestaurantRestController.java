@@ -23,7 +23,8 @@ public class RestaurantRestController {
     @Operation(summary = "Crear un nuevo restaurante")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Restaurante creado", content = @Content),
-            @ApiResponse(responseCode = "409", description = "Restaurante ya existe", content = @Content)
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, el usuario especificado no es propietario", content = @Content),
+            @ApiResponse(responseCode = "409", description = "Restaurante ya existe (ej: NIT duplicado)", content = @Content)
     })
     @PostMapping("/")
     public ResponseEntity<Void> saveRestaurant(@RequestBody RestaurantRequestDto restaurantRequestDto) {
