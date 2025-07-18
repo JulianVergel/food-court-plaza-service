@@ -188,4 +188,60 @@ class DishUseCaseTest {
         assertThrows(IllegalArgumentException.class, () -> dishUseCase.updateDish(1L, dishUpdate));
         verify(dishPersistencePort, never()).saveDish(any());
     }
+
+    @Test
+    void testEnableDisableDish_EnableSuccess() {
+        // Arrange
+        dish.setActive(false); // Empezamos con el plato desactivado
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(5L); // El usuario es el dueño
+        when(dishPersistencePort.findById(1L)).thenReturn(Optional.of(dish));
+        when(restaurantPersistencePort.findById(10L)).thenReturn(Optional.of(restaurant));
+
+        // Act
+        dishUseCase.enableDisableDish(1L, true); // Queremos activarlo
+
+        // Assert
+        ArgumentCaptor<Dish> dishCaptor = ArgumentCaptor.forClass(Dish.class);
+        verify(dishPersistencePort).saveDish(dishCaptor.capture());
+        assertTrue(dishCaptor.getValue().isActive()); // Verificamos que se guardó como 'true'
+    }
+
+    @Test
+    void testEnableDisableDish_DisableSuccess() {
+        // Arrange
+        dish.setActive(true); // Empezamos con el plato activado
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(5L); // El usuario es el dueño
+        when(dishPersistencePort.findById(1L)).thenReturn(Optional.of(dish));
+        when(restaurantPersistencePort.findById(10L)).thenReturn(Optional.of(restaurant));
+
+        // Act
+        dishUseCase.enableDisableDish(1L, false); // Queremos desactivarlo
+
+        // Assert
+        ArgumentCaptor<Dish> dishCaptor = ArgumentCaptor.forClass(Dish.class);
+        verify(dishPersistencePort).saveDish(dishCaptor.capture());
+        assertFalse(dishCaptor.getValue().isActive()); // Verificamos que se guardó como 'false'
+    }
+
+    @Test
+    void testEnableDisableDish_FailsWhenUserIsNotOwner() {
+        // Arrange
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(99L); // El usuario NO es el dueño
+        when(dishPersistencePort.findById(1L)).thenReturn(Optional.of(dish));
+        when(restaurantPersistencePort.findById(10L)).thenReturn(Optional.of(restaurant));
+
+        // Act & Assert
+        assertThrows(NotRestaurantOwnerException.class, () -> dishUseCase.enableDisableDish(1L, true));
+        verify(dishPersistencePort, never()).saveDish(any());
+    }
+
+    @Test
+    void testEnableDisableDish_FailsWhenDishNotFound() {
+        // Arrange
+        when(dishPersistencePort.findById(1L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(DishNotFoundException.class, () -> dishUseCase.enableDisableDish(1L, true));
+        verify(dishPersistencePort, never()).saveDish(any());
+    }
 }

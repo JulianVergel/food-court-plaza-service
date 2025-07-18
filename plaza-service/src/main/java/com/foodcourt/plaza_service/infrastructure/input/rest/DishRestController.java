@@ -1,5 +1,6 @@
 package com.foodcourt.plaza_service.infrastructure.input.rest;
 
+import com.foodcourt.plaza_service.application.dto.request.DishEnableDisableRequestDto;
 import com.foodcourt.plaza_service.application.dto.request.DishRequestDto;
 import com.foodcourt.plaza_service.application.dto.request.DishUpdateRequestDto;
 import com.foodcourt.plaza_service.application.handler.IDishHandler;
@@ -43,6 +44,19 @@ public class DishRestController {
     @PreAuthorize("hasAuthority('ROLE_Propietario')")
     public ResponseEntity<Void> updateDish(@PathVariable Long id, @RequestBody DishUpdateRequestDto dishUpdateRequestDto) {
         dishHandler.updateDish(id, dishUpdateRequestDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Habilitar o deshabilitar un plato")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Estado del plato actualizado", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, no es propietario del restaurante", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Plato no encontrado", content = @Content)
+    })
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_Propietario')")
+    public ResponseEntity<Void> enableDisableDish(@PathVariable Long id, @RequestBody DishEnableDisableRequestDto dishEnableDisableRequestDto) {
+        dishHandler.enableDisableDish(id, dishEnableDisableRequestDto);
         return ResponseEntity.ok().build();
     }
 }
