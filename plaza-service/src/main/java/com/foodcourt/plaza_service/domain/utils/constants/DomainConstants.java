@@ -17,4 +17,6 @@ public class DomainConstants {
     public static final String PRICE_DISH_NOT_VALID_MESSAGE = "El precio del plato debe ser mayor a cero";
 
     public static final String CATEGORY_NOT_FOUND_MESSAGE = "La categoría especificada no fue encontrada";
+
+    public static final String DISH_NOT_FOUND_MESSAGE = "El plato no se ha encontrado";
 }

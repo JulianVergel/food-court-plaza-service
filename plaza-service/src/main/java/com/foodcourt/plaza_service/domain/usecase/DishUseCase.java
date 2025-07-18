@@ -4,6 +4,7 @@ import com.foodcourt.plaza_service.domain.api.IDishServicePort;
 import com.foodcourt.plaza_service.domain.exception.CategoryNotFoundException;
 import com.foodcourt.plaza_service.domain.exception.NotRestaurantOwnerException;
 import com.foodcourt.plaza_service.domain.exception.RestaurantNotFoundException;
+import com.foodcourt.plaza_service.domain.exception.DishNotFoundException;
 import com.foodcourt.plaza_service.domain.model.Dish;
 import com.foodcourt.plaza_service.domain.model.Restaurant;
 import com.foodcourt.plaza_service.domain.spi.ICategoryPersistencePort;
@@ -42,5 +43,29 @@ public class DishUseCase implements IDishServicePort {
 
         dish.setActive(true);
         dishPersistencePort.saveDish(dish);
+    }
+
+    @Override
+    public void updateDish(Long id, Dish dishUpdate) {
+        Long ownerId = userContextProviderPort.getAuthenticatedUserId();
+
+        Dish existingDish = dishPersistencePort.findById(id)
+                .orElseThrow(DishNotFoundException::new);
+
+        Restaurant restaurant = restaurantPersistencePort.findById(existingDish.getRestaurantId())
+                .orElseThrow(RestaurantNotFoundException::new);
+
+        if (!restaurant.getOwnerUserId().equals(ownerId)) {
+            throw new NotRestaurantOwnerException();
+        }
+
+        if (dishUpdate.getPrice() != null && dishUpdate.getPrice() <= 0) {
+            throw new IllegalArgumentException(PRICE_DISH_NOT_VALID_MESSAGE);
+        }
+
+        existingDish.setPrice(dishUpdate.getPrice());
+        existingDish.setDescription(dishUpdate.getDescription());
+
+        dishPersistencePort.saveDish(existingDish);
     }
 }

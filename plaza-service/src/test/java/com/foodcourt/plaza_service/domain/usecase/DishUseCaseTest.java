@@ -1,6 +1,7 @@
 package com.foodcourt.plaza_service.domain.usecase;
 
 import com.foodcourt.plaza_service.domain.exception.CategoryNotFoundException;
+import com.foodcourt.plaza_service.domain.exception.DishNotFoundException;
 import com.foodcourt.plaza_service.domain.exception.NotRestaurantOwnerException;
 import com.foodcourt.plaza_service.domain.exception.RestaurantNotFoundException;
 import com.foodcourt.plaza_service.domain.model.Category;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Optional;
 
@@ -40,17 +42,21 @@ class DishUseCaseTest {
     private Dish dish;
     private Restaurant restaurant;
     private Category category;
+    private Dish dishUpdate;
 
     @BeforeEach
     void setUp() {
         // Objeto principal para las pruebas
         dish = new Dish(1L, "Plato de Prueba", "Descripción", 10000L, "url.com/img.png", true, 10L, 20L);
-        // Restaurante que simularemos encontrar en la BD
         restaurant = new Restaurant();
         restaurant.setId(10L);
-        restaurant.setOwnerUserId(5L); // El dueño es el usuario con ID 5
-        // Categoría que simularemos encontrar
+        restaurant.setOwnerUserId(5L);
         category = new Category(20L, "Categoría de Prueba", "Descripción");
+
+        // Nuevo objeto con los datos que simulan la entrada para actualizar
+        dishUpdate = new Dish();
+        dishUpdate.setPrice(15000L);
+        dishUpdate.setDescription("Nueva Descripción");
     }
 
     @Test
@@ -120,6 +126,66 @@ class DishUseCaseTest {
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> dishUseCase.saveDish(dish));
+        verify(dishPersistencePort, never()).saveDish(any());
+    }
+
+    @Test
+    void testUpdateDish_Success() {
+        // Arrange
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(5L); // Usuario es el dueño
+        when(dishPersistencePort.findById(1L)).thenReturn(Optional.of(dish));
+        when(restaurantPersistencePort.findById(10L)).thenReturn(Optional.of(restaurant));
+
+        // Act
+        dishUseCase.updateDish(1L, dishUpdate);
+
+        // Assert
+        // Usamos ArgumentCaptor para "capturar" el objeto que se pasa al método saveDish
+        ArgumentCaptor<Dish> dishCaptor = ArgumentCaptor.forClass(Dish.class);
+        verify(dishPersistencePort).saveDish(dishCaptor.capture());
+
+        Dish capturedDish = dishCaptor.getValue();
+
+        // Verificamos que solo los campos permitidos fueron actualizados
+        assertEquals(15000L, capturedDish.getPrice());
+        assertEquals("Nueva Descripción", capturedDish.getDescription());
+        // Verificamos que los otros campos NO cambiaron
+        assertEquals("Plato de Prueba", capturedDish.getName());
+        assertEquals(1L, capturedDish.getId());
+    }
+
+    @Test
+    void testUpdateDish_FailsWhenDishNotFound() {
+        // Arrange
+        when(dishPersistencePort.findById(1L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(DishNotFoundException.class, () -> dishUseCase.updateDish(1L, dishUpdate));
+        verify(dishPersistencePort, never()).saveDish(any());
+    }
+
+    @Test
+    void testUpdateDish_FailsWhenUserIsNotOwner() {
+        // Arrange
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(99L); // Usuario NO es el dueño
+        when(dishPersistencePort.findById(1L)).thenReturn(Optional.of(dish));
+        when(restaurantPersistencePort.findById(10L)).thenReturn(Optional.of(restaurant));
+
+        // Act & Assert
+        assertThrows(NotRestaurantOwnerException.class, () -> dishUseCase.updateDish(1L, dishUpdate));
+        verify(dishPersistencePort, never()).saveDish(any());
+    }
+
+    @Test
+    void testUpdateDish_FailsWithInvalidPrice() {
+        // Arrange
+        dishUpdate.setPrice(0L); // Precio inválido
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(5L);
+        when(dishPersistencePort.findById(1L)).thenReturn(Optional.of(dish));
+        when(restaurantPersistencePort.findById(10L)).thenReturn(Optional.of(restaurant));
+
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () -> dishUseCase.updateDish(1L, dishUpdate));
         verify(dishPersistencePort, never()).saveDish(any());
     }
 }

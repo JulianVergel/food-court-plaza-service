@@ -1,9 +1,6 @@
 package com.foodcourt.plaza_service.infrastructure.exceptionhandler;
 
-import com.foodcourt.plaza_service.domain.exception.CategoryNotFoundException;
-import com.foodcourt.plaza_service.domain.exception.NotRestaurantOwnerException;
-import com.foodcourt.plaza_service.domain.exception.RestaurantNotFoundException;
-import com.foodcourt.plaza_service.domain.exception.UserNotAnOwnerException;
+import com.foodcourt.plaza_service.domain.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -51,5 +48,11 @@ public class ControllerAdvisor {
             CategoryNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Collections.singletonMap(MESSAGE, CATEGORY_NOT_FOUND_MESSAGE));
+    }
+
+    @ExceptionHandler(DishNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleDishNotFoundException(DishNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Collections.singletonMap(MESSAGE, DISH_NOT_FOUND_MESSAGE));
     }
 }
