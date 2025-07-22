@@ -4,6 +4,7 @@ import com.foodcourt.plaza_service.domain.exception.ClientHasAnOrderException;
 import com.foodcourt.plaza_service.domain.model.Order;
 import com.foodcourt.plaza_service.domain.model.OrderDish;
 import com.foodcourt.plaza_service.domain.model.Traceability;
+import com.foodcourt.plaza_service.domain.spi.IEmployeePersistencePort;
 import com.foodcourt.plaza_service.domain.spi.IOrderPersistencePort;
 import com.foodcourt.plaza_service.domain.spi.ITraceabilityPersistencePort;
 import com.foodcourt.plaza_service.domain.spi.IUserContextProviderPort;
@@ -13,6 +14,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +34,8 @@ class OrderUseCaseTest {
     private IUserContextProviderPort userContextProviderPort;
     @Mock
     private ITraceabilityPersistencePort traceabilityPersistencePort;
+    @Mock
+    private IEmployeePersistencePort employeePersistencePort;
 
     @InjectMocks
     private OrderUseCase orderUseCase;
@@ -83,5 +89,28 @@ class OrderUseCaseTest {
         // Verificamos que no se intentó guardar nada
         verify(orderPersistencePort, never()).saveOrder(any());
         verify(traceabilityPersistencePort, never()).logOrderTrace(any());
+    }
+
+    @Test
+    void testListOrdersByStatus_Success() {
+        String status = "PENDIENTE";
+        int page = 0;
+        int size = 10;
+        Long employeeId = 66L;
+        Long restaurantId = 31L;
+        Page<Order> expectedPage = new PageImpl<>(Collections.emptyList());
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(employeeId);
+        when(employeePersistencePort.findRestaurantIdByEmployeeId(employeeId)).thenReturn(restaurantId);
+        when(orderPersistencePort.findByRestaurantIdAndStatus(eq(restaurantId), eq(status), any(Pageable.class)))
+                .thenReturn(expectedPage);
+
+        Page<Order> result = orderUseCase.listOrdersByStatus(status, page, size);
+
+        verify(employeePersistencePort, times(1)).findRestaurantIdByEmployeeId(employeeId);
+
+        verify(orderPersistencePort, times(1)).findByRestaurantIdAndStatus(eq(restaurantId), eq(status), any(Pageable.class));
+
+        assertEquals(expectedPage, result);
     }
 }

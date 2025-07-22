@@ -11,6 +11,8 @@ import com.foodcourt.plaza_service.infrastructure.output.jpa.mapper.IOrderEntity
 import com.foodcourt.plaza_service.infrastructure.output.jpa.repository.IOrderDishJpaRepository;
 import com.foodcourt.plaza_service.infrastructure.output.jpa.repository.IOrderJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -55,5 +57,11 @@ public class OrderJpaAdapter implements IOrderPersistencePort {
     @Override
     public boolean existsByCustomerIdAndStatusIn(Long customerId, List<String> statuses) {
         return orderRepository.existsByCustomerIdAndStatusIn(customerId, statuses);
+    }
+
+    @Override
+    public Page<Order> findByRestaurantIdAndStatus(Long restaurantId, String status, Pageable pageable) {
+        Page<OrderEntity> orderEntityPage = orderRepository.findByRestaurantIdAndStatus(restaurantId, status, pageable);
+        return orderEntityPage.map(orderEntityMapper::toOrder);
     }
 }

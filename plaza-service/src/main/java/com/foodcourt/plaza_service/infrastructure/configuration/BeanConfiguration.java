@@ -22,7 +22,8 @@ public class BeanConfiguration {
     @Bean
     public IOrderServicePort orderServicePort(IOrderPersistencePort orderPersistencePort,
                                               IUserContextProviderPort userContextProviderPort,
-                                              ITraceabilityPersistencePort traceabilityPersistencePort) {
-        return new OrderUseCase(orderPersistencePort, userContextProviderPort, traceabilityPersistencePort);
+                                              ITraceabilityPersistencePort traceabilityPersistencePort,
+                                              IEmployeePersistencePort employeePersistencePort) {
+        return new OrderUseCase(orderPersistencePort, userContextProviderPort, traceabilityPersistencePort, employeePersistencePort);
     }
 }
