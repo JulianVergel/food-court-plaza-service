@@ -49,4 +49,18 @@ public class OrderRestController {
     ) {
         return ResponseEntity.ok(orderHandler.listOrdersByStatus(status, page, size));
     }
+
+    @Operation(summary = "Asignarse a un pedido y cambiar estado a 'en preparación'")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pedido asignado y actualizado", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, rol incorrecto", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Pedido no encontrado", content = @Content),
+            @ApiResponse(responseCode = "409", description = "El pedido no está en estado pendiente", content = @Content)
+    })
+    @PatchMapping("/{id}/assign")
+    @PreAuthorize("hasAuthority('ROLE_Empleado')")
+    public ResponseEntity<Void> assignOrderToEmployee(@PathVariable Long id) {
+        orderHandler.assignOrderToEmployee(id);
+        return ResponseEntity.ok().build();
+    }
 }

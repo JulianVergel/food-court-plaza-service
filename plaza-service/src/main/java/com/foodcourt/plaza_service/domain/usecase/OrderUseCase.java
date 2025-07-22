@@ -2,6 +2,9 @@ package com.foodcourt.plaza_service.domain.usecase;
 
 import com.foodcourt.plaza_service.domain.api.IOrderServicePort;
 import com.foodcourt.plaza_service.domain.exception.ClientHasAnOrderException;
+import com.foodcourt.plaza_service.domain.exception.NotRestaurantOwnerException;
+import com.foodcourt.plaza_service.domain.exception.OrderCannotBeAssignedException;
+import com.foodcourt.plaza_service.domain.exception.OrderNotFoundException;
 import com.foodcourt.plaza_service.domain.model.Order;
 import com.foodcourt.plaza_service.domain.model.OrderDish;
 import com.foodcourt.plaza_service.domain.model.Traceability;
@@ -68,5 +71,39 @@ public class OrderUseCase implements IOrderServicePort {
         Pageable pageable = PageRequest.of(page, size);
 
         return orderPersistencePort.findByRestaurantIdAndStatus(restaurantId, status, pageable);
+    }
+
+    @Override
+    public void assignOrderToEmployee(Long orderId) {
+        Long employeeId = userContextProviderPort.getAuthenticatedUserId();
+        String employeeEmail = userContextProviderPort.getAuthenticatedUserEmail();
+
+        Order order = orderPersistencePort.findById(orderId)
+                .orElseThrow(OrderNotFoundException::new);
+
+        if (!"PENDIENTE".equalsIgnoreCase(order.getStatus())) {
+            throw new OrderCannotBeAssignedException();
+        }
+
+        Long employeeRestaurantId = employeePersistencePort.findRestaurantIdByEmployeeId(employeeId);
+        if (!employeeRestaurantId.equals(order.getRestaurantId())) {
+            throw new NotRestaurantOwnerException();
+        }
+
+        order.setChefId(employeeId);
+        order.setStatus("EN_PREPARACION");
+        orderPersistencePort.saveOrder(order);
+
+        Traceability trace = new Traceability(
+                order.getId(),
+                order.getCustomerId(),
+                null,
+                LocalDateTime.now(),
+                "PENDIENTE",
+                "EN_PREPARACION",
+                employeeId,
+                employeeEmail
+        );
+        traceabilityPersistencePort.logOrderTrace(trace);
     }
 }

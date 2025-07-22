@@ -21,7 +21,7 @@ public class DishEntity {
     private Long price;
     @Column(name = "image_url")
     private String imageUrl;
-    @Column(name = "is_active")
+    @Column(name = "active")
     private boolean active;
     @Column(name = "restaurant_id")
     private Long restaurantId;

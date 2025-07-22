@@ -1,6 +1,9 @@
 package com.foodcourt.plaza_service.domain.usecase;
 
 import com.foodcourt.plaza_service.domain.exception.ClientHasAnOrderException;
+import com.foodcourt.plaza_service.domain.exception.NotRestaurantOwnerException;
+import com.foodcourt.plaza_service.domain.exception.OrderCannotBeAssignedException;
+import com.foodcourt.plaza_service.domain.exception.OrderNotFoundException;
 import com.foodcourt.plaza_service.domain.model.Order;
 import com.foodcourt.plaza_service.domain.model.OrderDish;
 import com.foodcourt.plaza_service.domain.model.Traceability;
@@ -18,8 +21,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -112,5 +117,72 @@ class OrderUseCaseTest {
         verify(orderPersistencePort, times(1)).findByRestaurantIdAndStatus(eq(restaurantId), eq(status), any(Pageable.class));
 
         assertEquals(expectedPage, result);
+    }
+
+    @Test
+    void testAssignOrderToEmployee_Success() {
+        // Arrange
+        Long orderId = 1L;
+        Long employeeId = 66L;
+        Long restaurantId = 31L;
+        Order pendingOrder = new Order(orderId, 10L, LocalDate.now(), "PENDIENTE", null, restaurantId);
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(employeeId);
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(pendingOrder));
+        when(employeePersistencePort.findRestaurantIdByEmployeeId(employeeId)).thenReturn(restaurantId);
+
+        // Act
+        orderUseCase.assignOrderToEmployee(orderId);
+
+        // Assert
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+        verify(orderPersistencePort).saveOrder(orderCaptor.capture());
+        Order capturedOrder = orderCaptor.getValue();
+
+        assertEquals("EN_PREPARACION", capturedOrder.getStatus());
+        assertEquals(employeeId, capturedOrder.getChefId());
+
+        verify(traceabilityPersistencePort, times(1)).logOrderTrace(any(Traceability.class));
+    }
+
+    @Test
+    void testAssignOrderToEmployee_FailsWhenOrderNotFound() {
+        // Arrange
+        Long orderId = 1L;
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(OrderNotFoundException.class, () -> orderUseCase.assignOrderToEmployee(orderId));
+        verify(orderPersistencePort, never()).saveOrder(any());
+    }
+
+    @Test
+    void testAssignOrderToEmployee_FailsWhenOrderIsNotPending() {
+        // Arrange
+        Long orderId = 1L;
+        Order inPreparationOrder = new Order(orderId, 10L, LocalDate.now(), "EN_PREPARACION", 55L, 31L);
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(inPreparationOrder));
+
+        // Act & Assert
+        assertThrows(OrderCannotBeAssignedException.class, () -> orderUseCase.assignOrderToEmployee(orderId));
+        verify(orderPersistencePort, never()).saveOrder(any());
+    }
+
+    @Test
+    void testAssignOrderToEmployee_FailsWhenEmployeeDoesNotBelongToRestaurant() {
+        // Arrange
+        Long orderId = 1L;
+        Long employeeId = 66L;
+        Long orderRestaurantId = 31L;
+        Long employeeRestaurantId = 99L; // <-- Restaurante incorrecto
+        Order pendingOrder = new Order(orderId, 10L, LocalDate.now(), "PENDIENTE", null, orderRestaurantId);
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(employeeId);
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(pendingOrder));
+        when(employeePersistencePort.findRestaurantIdByEmployeeId(employeeId)).thenReturn(employeeRestaurantId);
+
+        // Act & Assert
+        assertThrows(NotRestaurantOwnerException.class, () -> orderUseCase.assignOrderToEmployee(orderId));
+        verify(orderPersistencePort, never()).saveOrder(any());
     }
 }
