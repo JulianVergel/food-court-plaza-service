@@ -7,8 +7,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderRestController {
 
     private final IOrderHandler orderHandler;
-    private static final Logger logger = LoggerFactory.getLogger(OrderRestController.class);
 
     @Operation(summary = "Realizar un pedido")
     @ApiResponses(value = {
@@ -34,7 +31,6 @@ public class OrderRestController {
     @PostMapping("/")
     @PreAuthorize("hasAuthority('ROLE_Cliente')")
     public ResponseEntity<Void> createOrder(@RequestBody OrderRequestDto orderRequestDto) {
-        logger.info("ID de Restaurante recibido en el DTO del Controller: {}", orderRequestDto.getRestaurantId());
         orderHandler.createOrder(orderRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

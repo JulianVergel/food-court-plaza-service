@@ -38,11 +38,14 @@ class OrderUseCaseTest {
     void testCreateOrder_Success() {
         // Arrange
         Long customerId = 10L;
+        String customerEmail = "cliente@example.com"; // Email de prueba
         Order orderToSave = new Order(null, null, null, null, null, 5L);
         Order savedOrder = new Order(1L, customerId, null, "PENDIENTE", null, 5L);
         List<OrderDish> dishes = Collections.singletonList(new OrderDish(null, 1L, 2));
 
+        // Simulamos el comportamiento de los puertos
         when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(customerId);
+        when(userContextProviderPort.getAuthenticatedUserEmail()).thenReturn(customerEmail); // <-- 1. AÑADIMOS ESTA SIMULACIÓN
         when(orderPersistencePort.existsByCustomerIdAndStatusIn(eq(customerId), anyList())).thenReturn(false);
         when(orderPersistencePort.saveOrder(any(Order.class))).thenReturn(savedOrder);
 
@@ -57,10 +60,12 @@ class OrderUseCaseTest {
         verify(traceabilityPersistencePort).logOrderTrace(traceCaptor.capture());
         Traceability capturedTrace = traceCaptor.getValue();
 
+        // Verificamos los datos capturados en el objeto de trazabilidad
         assertEquals(savedOrder.getId(), capturedTrace.getOrderId());
         assertEquals(customerId, capturedTrace.getCustomerId());
         assertEquals("PENDIENTE", capturedTrace.getNewStatus());
         assertNull(capturedTrace.getPreviousStatus());
+        assertEquals(customerEmail, capturedTrace.getCustomerEmail()); // <-- 2. AÑADIMOS ESTA VERIFICACIÓN
     }
 
     @Test

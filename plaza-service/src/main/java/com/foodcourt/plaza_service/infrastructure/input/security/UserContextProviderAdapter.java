@@ -20,4 +20,10 @@ public class UserContextProviderAdapter implements IUserContextProviderPort {
         // Retornar null o lanzar una excepción si el principal no es del tipo esperado
         return null;
     }
+
+    @Override
+    public String getAuthenticatedUserEmail() {
+        Jwt jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return jwt.getSubject(); // El 'subject' del token es el email
+    }
 }
