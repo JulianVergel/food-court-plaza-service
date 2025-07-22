@@ -19,4 +19,6 @@ public class DomainConstants {
     public static final String CATEGORY_NOT_FOUND_MESSAGE = "La categoría especificada no fue encontrada";
 
     public static final String DISH_NOT_FOUND_MESSAGE = "El plato no se ha encontrado";
+
+    public static final String CLIENT_HAS_AN_ORDER_MESSAGE = "El cliente tiene un pedido en proceso";
 }

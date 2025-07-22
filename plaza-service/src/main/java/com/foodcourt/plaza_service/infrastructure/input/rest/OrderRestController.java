@@ -1,0 +1,37 @@
+package com.foodcourt.plaza_service.infrastructure.input.rest;
+
+import com.foodcourt.plaza_service.application.dto.request.OrderRequestDto;
+import com.foodcourt.plaza_service.application.handler.IOrderHandler;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/orders")
+@RequiredArgsConstructor
+public class OrderRestController {
+
+    private final IOrderHandler orderHandler;
+
+    @Operation(summary = "Realizar un pedido")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Pedido creado", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, rol incorrecto o no es cliente", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Restaurante o plato no encontrados", content = @Content)
+    })
+    @PostMapping("/")
+    @PreAuthorize("hasAuthority('ROLE_Cliente')")
+    public ResponseEntity<Void> createOrder(@RequestBody OrderRequestDto orderRequestDto) {
+        orderHandler.createOrder(orderRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+}

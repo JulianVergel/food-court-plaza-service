@@ -55,4 +55,11 @@ public class ControllerAdvisor {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Collections.singletonMap(MESSAGE, DISH_NOT_FOUND_MESSAGE));
     }
+
+    @ExceptionHandler(ClientHasAnOrderException.class)
+    public ResponseEntity<Map<String, String>> handleClientHasAnOrderException(
+            ClientHasAnOrderException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Collections.singletonMap(MESSAGE, ex.getMessage()));
+    }
 }
