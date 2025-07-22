@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,5 +64,11 @@ public class OrderJpaAdapter implements IOrderPersistencePort {
     public Page<Order> findByRestaurantIdAndStatus(Long restaurantId, String status, Pageable pageable) {
         Page<OrderEntity> orderEntityPage = orderRepository.findByRestaurantIdAndStatus(restaurantId, status, pageable);
         return orderEntityPage.map(orderEntityMapper::toOrder);
+    }
+
+    @Override
+    public Optional<Order> findById(Long orderId) {
+        return orderRepository.findById(orderId)
+                .map(orderEntityMapper::toOrder);
     }
 }

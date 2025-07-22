@@ -37,4 +37,9 @@ public class OrderHandler implements IOrderHandler {
         Page<Order> orderPage = orderServicePort.listOrdersByStatus(status, page, size);
         return orderPage.map(orderResponseMapper::toResponse);
     }
+
+    @Override
+    public void assignOrderToEmployee(Long orderId) {
+        orderServicePort.assignOrderToEmployee(orderId);
+    }
 }

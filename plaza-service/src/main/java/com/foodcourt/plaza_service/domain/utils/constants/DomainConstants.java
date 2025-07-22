@@ -21,4 +21,7 @@ public class DomainConstants {
     public static final String DISH_NOT_FOUND_MESSAGE = "El plato no se ha encontrado";
 
     public static final String CLIENT_HAS_AN_ORDER_MESSAGE = "El cliente tiene un pedido en proceso";
+
+    public static final String ORDER_CANNOT_BE_ASSIGNED_MESSAGE = "El pedido no puede ser asignado porque no está en estado PENDIENTE.";
+    public static final String ORDER_NOT_FOUND_MESSAGE = "Orden no encontrada";
 }
