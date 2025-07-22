@@ -1,19 +1,18 @@
 package com.foodcourt.plaza_service.infrastructure.input.rest;
 
 import com.foodcourt.plaza_service.application.dto.request.OrderRequestDto;
+import com.foodcourt.plaza_service.application.dto.response.OrderResponseDto;
 import com.foodcourt.plaza_service.application.handler.IOrderHandler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/orders")
@@ -33,5 +32,21 @@ public class OrderRestController {
     public ResponseEntity<Void> createOrder(@RequestBody OrderRequestDto orderRequestDto) {
         orderHandler.createOrder(orderRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @Operation(summary = "Listar pedidos")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pedidos listados correctamente", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, rol incorrecto o no es empleado", content = @Content),
+            @ApiResponse(responseCode = "404", description = "No se encontraron pedidos", content = @Content)
+    })
+    @GetMapping("/")
+    @PreAuthorize("hasAuthority('ROLE_Empleado')")
+    public ResponseEntity<Page<OrderResponseDto>> listOrdersByStatus(
+            @RequestParam String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(orderHandler.listOrdersByStatus(status, page, size));
     }
 }

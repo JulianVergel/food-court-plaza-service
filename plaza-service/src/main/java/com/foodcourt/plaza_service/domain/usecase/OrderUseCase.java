@@ -5,10 +5,14 @@ import com.foodcourt.plaza_service.domain.exception.ClientHasAnOrderException;
 import com.foodcourt.plaza_service.domain.model.Order;
 import com.foodcourt.plaza_service.domain.model.OrderDish;
 import com.foodcourt.plaza_service.domain.model.Traceability;
+import com.foodcourt.plaza_service.domain.spi.IEmployeePersistencePort;
 import com.foodcourt.plaza_service.domain.spi.IOrderPersistencePort;
 import com.foodcourt.plaza_service.domain.spi.ITraceabilityPersistencePort;
 import com.foodcourt.plaza_service.domain.spi.IUserContextProviderPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +25,7 @@ public class OrderUseCase implements IOrderServicePort {
     private final IOrderPersistencePort orderPersistencePort;
     private final IUserContextProviderPort userContextProviderPort;
     private final ITraceabilityPersistencePort traceabilityPersistencePort;
+    private final IEmployeePersistencePort employeePersistencePort;
 
     @Override
     public void createOrder(Order order, List<OrderDish> orderDishes) {
@@ -52,5 +57,16 @@ public class OrderUseCase implements IOrderServicePort {
                 null
         );
         traceabilityPersistencePort.logOrderTrace(trace);
+    }
+
+    @Override
+    public Page<Order> listOrdersByStatus(String status, int page, int size) {
+        Long employeeId = userContextProviderPort.getAuthenticatedUserId();
+
+        Long restaurantId = employeePersistencePort.findRestaurantIdByEmployeeId(employeeId);
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return orderPersistencePort.findByRestaurantIdAndStatus(restaurantId, status, pageable);
     }
 }
