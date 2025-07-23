@@ -18,4 +18,5 @@ public class Order {
     private String status;
     private Long chefId;
     private Long restaurantId;
+    private String securityPin;
 }

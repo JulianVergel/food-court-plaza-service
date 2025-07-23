@@ -23,7 +23,10 @@ public class BeanConfiguration {
     public IOrderServicePort orderServicePort(IOrderPersistencePort orderPersistencePort,
                                               IUserContextProviderPort userContextProviderPort,
                                               ITraceabilityPersistencePort traceabilityPersistencePort,
-                                              IEmployeePersistencePort employeePersistencePort) {
-        return new OrderUseCase(orderPersistencePort, userContextProviderPort, traceabilityPersistencePort, employeePersistencePort);
+                                              IEmployeePersistencePort employeePersistencePort,
+                                              IMessagingPersistencePort messagingPersistencePort,
+                                              IUserPersistencePort userPersistencePort) {
+        return new OrderUseCase(orderPersistencePort, userContextProviderPort, traceabilityPersistencePort,
+                employeePersistencePort, messagingPersistencePort, userPersistencePort);
     }
 }

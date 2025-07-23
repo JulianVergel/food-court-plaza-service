@@ -8,4 +8,5 @@ public interface IOrderHandler {
     void createOrder(OrderRequestDto orderRequestDto);
     Page<OrderResponseDto> listOrdersByStatus(String status, int page, int size);
     void assignOrderToEmployee(Long orderId);
+    void notifyOrderReady(Long orderId);
 }

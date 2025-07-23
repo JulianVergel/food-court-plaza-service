@@ -10,4 +10,5 @@ public interface IOrderServicePort {
     void createOrder(Order order, List<OrderDish> orderDishes);
     Page<Order> listOrdersByStatus(String status, int page, int size);
     void assignOrderToEmployee(Long orderId);
+    void notifyOrderReady(Long orderId);
 }
