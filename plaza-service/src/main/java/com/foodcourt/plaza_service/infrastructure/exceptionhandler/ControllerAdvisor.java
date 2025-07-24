@@ -97,4 +97,18 @@ public class ControllerAdvisor {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Collections.singletonMap(MESSAGE, ex.getMessage()));
     }
+
+    @ExceptionHandler(OrderCannotBeCanceledException.class)
+    public ResponseEntity<Map<String, String>> handleOrderCannotBeCanceledException(
+            OrderCannotBeCanceledException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Collections.singletonMap(MESSAGE, ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserCanNotCancelOrderException.class)
+    public ResponseEntity<Map<String, String>> handleUserCanNotCancelOrderException(
+            UserCanNotCancelOrderException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Collections.singletonMap(MESSAGE, ex.getMessage()));
+    }
 }

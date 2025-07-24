@@ -53,4 +53,9 @@ public class OrderHandler implements IOrderHandler {
     public void deliverOrder(Long orderId, OrderDeliverRequestDto orderDeliverRequestDto) {
         orderServicePort.deliverOrder(orderId, orderDeliverRequestDto.getPin());
     }
+
+    @Override
+    public void cancelOrder(Long orderId) {
+        orderServicePort.cancelOrder(orderId);
+    }
 }
