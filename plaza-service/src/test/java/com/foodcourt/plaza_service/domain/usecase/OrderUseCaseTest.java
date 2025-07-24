@@ -1,16 +1,10 @@
 package com.foodcourt.plaza_service.domain.usecase;
 
-import com.foodcourt.plaza_service.domain.exception.ClientHasAnOrderException;
-import com.foodcourt.plaza_service.domain.exception.NotRestaurantOwnerException;
-import com.foodcourt.plaza_service.domain.exception.OrderCannotBeAssignedException;
-import com.foodcourt.plaza_service.domain.exception.OrderNotFoundException;
+import com.foodcourt.plaza_service.domain.exception.*;
 import com.foodcourt.plaza_service.domain.model.Order;
 import com.foodcourt.plaza_service.domain.model.OrderDish;
 import com.foodcourt.plaza_service.domain.model.Traceability;
-import com.foodcourt.plaza_service.domain.spi.IEmployeePersistencePort;
-import com.foodcourt.plaza_service.domain.spi.IOrderPersistencePort;
-import com.foodcourt.plaza_service.domain.spi.ITraceabilityPersistencePort;
-import com.foodcourt.plaza_service.domain.spi.IUserContextProviderPort;
+import com.foodcourt.plaza_service.domain.spi.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -41,6 +35,8 @@ class OrderUseCaseTest {
     private ITraceabilityPersistencePort traceabilityPersistencePort;
     @Mock
     private IEmployeePersistencePort employeePersistencePort;
+    @Mock private IMessagingPersistencePort messagingPersistencePort;
+    @Mock private IUserPersistencePort userPersistencePort;
 
     @InjectMocks
     private OrderUseCase orderUseCase;
@@ -50,8 +46,8 @@ class OrderUseCaseTest {
         // Arrange
         Long customerId = 10L;
         String customerEmail = "cliente@example.com"; // Email de prueba
-        Order orderToSave = new Order(null, null, null, null, null, 5L);
-        Order savedOrder = new Order(1L, customerId, null, "PENDIENTE", null, 5L);
+        Order orderToSave = new Order(null, null, null, null, null, 5L, null);
+        Order savedOrder = new Order(1L, customerId, null, "PENDIENTE", null, 5L, null);
         List<OrderDish> dishes = Collections.singletonList(new OrderDish(null, 1L, 2));
 
         // Simulamos el comportamiento de los puertos
@@ -125,7 +121,7 @@ class OrderUseCaseTest {
         Long orderId = 1L;
         Long employeeId = 66L;
         Long restaurantId = 31L;
-        Order pendingOrder = new Order(orderId, 10L, LocalDate.now(), "PENDIENTE", null, restaurantId);
+        Order pendingOrder = new Order(orderId, 10L, LocalDate.now(), "PENDIENTE", null, restaurantId, null);
 
         when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(employeeId);
         when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(pendingOrder));
@@ -160,7 +156,7 @@ class OrderUseCaseTest {
     void testAssignOrderToEmployee_FailsWhenOrderIsNotPending() {
         // Arrange
         Long orderId = 1L;
-        Order inPreparationOrder = new Order(orderId, 10L, LocalDate.now(), "EN_PREPARACION", 55L, 31L);
+        Order inPreparationOrder = new Order(orderId, 10L, LocalDate.now(), "EN_PREPARACION", 55L, 31L, null);
         when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(inPreparationOrder));
 
         // Act & Assert
@@ -175,7 +171,7 @@ class OrderUseCaseTest {
         Long employeeId = 66L;
         Long orderRestaurantId = 31L;
         Long employeeRestaurantId = 99L; // <-- Restaurante incorrecto
-        Order pendingOrder = new Order(orderId, 10L, LocalDate.now(), "PENDIENTE", null, orderRestaurantId);
+        Order pendingOrder = new Order(orderId, 10L, LocalDate.now(), "PENDIENTE", null, orderRestaurantId, null);
 
         when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(employeeId);
         when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(pendingOrder));
@@ -184,5 +180,50 @@ class OrderUseCaseTest {
         // Act & Assert
         assertThrows(NotRestaurantOwnerException.class, () -> orderUseCase.assignOrderToEmployee(orderId));
         verify(orderPersistencePort, never()).saveOrder(any());
+    }
+
+    @Test
+    void testNotifyOrderReady_Success() {
+        // Arrange
+        Long orderId = 1L;
+        Long employeeId = 66L;
+        Long customerId = 5L;
+        Long restaurantId = 31L;
+        String customerPhone = "+573001234567";
+        Order orderInPreparation = new Order(orderId, customerId, LocalDate.now(), "EN_PREPARACION", employeeId, restaurantId, null);
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(employeeId);
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(orderInPreparation));
+        when(employeePersistencePort.findRestaurantIdByEmployeeId(employeeId)).thenReturn(restaurantId);
+        when(userPersistencePort.findUserPhoneById(customerId)).thenReturn(customerPhone);
+
+        // Act
+        orderUseCase.notifyOrderReady(orderId);
+
+        // Assert
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+        verify(orderPersistencePort).saveOrder(orderCaptor.capture());
+        Order capturedOrder = orderCaptor.getValue();
+
+        assertEquals("LISTO", capturedOrder.getStatus());
+        assertNotNull(capturedOrder.getSecurityPin());
+        assertEquals(4, capturedOrder.getSecurityPin().length());
+
+        verify(messagingPersistencePort, times(1)).sendNotification(eq(customerPhone), anyString());
+        verify(traceabilityPersistencePort, times(1)).logOrderTrace(any(Traceability.class));
+    }
+
+    @Test
+    void testNotifyOrderReady_FailsWhenOrderIsNotInPreparation() {
+        // Arrange
+        Long orderId = 1L;
+        Order pendingOrder = new Order(orderId, 5L, LocalDate.now(), "PENDIENTE", null, 31L, null);
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(66L);
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(pendingOrder));
+
+        // Act & Assert
+        assertThrows(OrderIsNotInPreparationException.class, () -> orderUseCase.notifyOrderReady(orderId));
+        verify(messagingPersistencePort, never()).sendNotification(anyString(), anyString());
     }
 }

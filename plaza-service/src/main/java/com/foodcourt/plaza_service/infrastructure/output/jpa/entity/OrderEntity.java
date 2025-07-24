@@ -25,6 +25,7 @@ public class OrderEntity {
     @Column(name = "chef_id")
     private Long chefId;
     private Long restaurantId;
+    private String securityPin;
 
     @OneToMany(mappedBy = "order")
     private List<OrderDishEntity> orderDishes;

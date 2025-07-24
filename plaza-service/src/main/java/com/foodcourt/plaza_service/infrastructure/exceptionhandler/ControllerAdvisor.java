@@ -76,4 +76,11 @@ public class ControllerAdvisor {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Collections.singletonMap(MESSAGE, ex.getMessage()));
     }
+
+    @ExceptionHandler(OrderIsNotInPreparationException.class)
+    public ResponseEntity<Map<String, String>> handleOrderIsNotInPreparationException(
+            OrderIsNotInPreparationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Collections.singletonMap(MESSAGE, ex.getMessage()));
+    }
 }
