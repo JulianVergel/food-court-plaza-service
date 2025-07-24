@@ -281,4 +281,56 @@ class OrderUseCaseTest {
         assertThrows(InvalidPinException.class, () -> orderUseCase.deliverOrder(orderId, wrongPin));
         verify(orderPersistencePort, never()).saveOrder(any());
     }
+
+    @Test
+    void testCancelOrder_Success() {
+        // Arrange
+        Long orderId = 1L;
+        Long customerId = 5L;
+        Order pendingOrder = new Order(orderId, customerId, LocalDate.now(), "PENDIENTE", null, 31L, null);
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(customerId);
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(pendingOrder));
+
+        // Act
+        orderUseCase.cancelOrder(orderId);
+
+        // Assert
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+        verify(orderPersistencePort).saveOrder(orderCaptor.capture());
+        assertEquals("CANCELADO", orderCaptor.getValue().getStatus());
+
+        verify(traceabilityPersistencePort, times(1)).logOrderTrace(any(Traceability.class));
+    }
+
+    @Test
+    void testCancelOrder_FailsWhenUserIsNotOrderOwner() {
+        // Arrange
+        Long orderId = 1L;
+        Long orderCustomerId = 5L;
+        Long differentCustomerId = 99L;
+        Order pendingOrder = new Order(orderId, orderCustomerId, LocalDate.now(), "PENDIENTE", null, 31L, null);
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(differentCustomerId);
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(pendingOrder));
+
+        // Act & Assert
+        assertThrows(UserCanNotCancelOrderException.class, () -> orderUseCase.cancelOrder(orderId));
+        verify(orderPersistencePort, never()).saveOrder(any());
+    }
+
+    @Test
+    void testCancelOrder_FailsWhenOrderIsNotPending() {
+        // Arrange
+        Long orderId = 1L;
+        Long customerId = 5L;
+        Order readyOrder = new Order(orderId, customerId, LocalDate.now(), "LISTO", 66L, 31L, "1234");
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(customerId);
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(readyOrder));
+
+        // Act & Assert
+        assertThrows(OrderCannotBeCanceledException.class, () -> orderUseCase.cancelOrder(orderId));
+        verify(orderPersistencePort, never()).saveOrder(any());
+    }
 }

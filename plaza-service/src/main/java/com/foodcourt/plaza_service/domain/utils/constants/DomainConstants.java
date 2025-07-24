@@ -28,4 +28,6 @@ public class DomainConstants {
     public static final String ORDER_READY_MESSAGE = "El pedido esta listo, puede reclamarlo con el pin ";
     public static final String ORDER_IS_NOT_READY_MESSAGE = "El pedido no puede ser entregado porque no está en estado 'LISTO'.";
     public static final String INVALID_PIN_MESSAGE = "El PIN de seguridad proporcionado es incorrecto.";
+    public static final String ORDER_CAN_NOT_BE_CANCELED_MESSAGE = "Lo sentimos, tu pedido ya está en preparación y no puede cancelarse.";
+    public static final String USER_CAN_NOT_CANCEL_ORDER_MESSAGE = "No tienes permiso para cancelar este pedido.";
 }

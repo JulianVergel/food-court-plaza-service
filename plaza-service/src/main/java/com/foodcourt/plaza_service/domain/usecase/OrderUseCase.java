@@ -184,4 +184,35 @@ public class OrderUseCase implements IOrderServicePort {
         );
         traceabilityPersistencePort.logOrderTrace(trace);
     }
+
+    @Override
+    public void cancelOrder(Long orderId) {
+        Long customerId = userContextProviderPort.getAuthenticatedUserId();
+
+        Order order = orderPersistencePort.findById(orderId)
+                .orElseThrow(OrderNotFoundException::new);
+
+        if (!order.getCustomerId().equals(customerId)) {
+            throw new UserCanNotCancelOrderException();
+        }
+
+        if (!"PENDIENTE".equalsIgnoreCase(order.getStatus())) {
+            throw new OrderCannotBeCanceledException();
+        }
+
+        order.setStatus("CANCELADO");
+        orderPersistencePort.saveOrder(order);
+
+        Traceability trace = new Traceability(
+                order.getId(),
+                order.getCustomerId(),
+                userContextProviderPort.getAuthenticatedUserEmail(),
+                LocalDateTime.now(),
+                "PENDIENTE",
+                "CANCELADO",
+                null, // No hay empleado involucrado
+                null
+        );
+        traceabilityPersistencePort.logOrderTrace(trace);
+    }
 }

@@ -94,4 +94,18 @@ public class OrderRestController {
         orderHandler.deliverOrder(id, orderDeliverRequestDto);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "Cambiar estado a 'Cancelado'")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pedido cancelado", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, rol incorrecto", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Pedido no encontrado", content = @Content),
+            @ApiResponse(responseCode = "409", description = "El pedido no está en estado 'Pendiente'", content = @Content)
+    })
+    @PatchMapping("/{id}/cancel")
+    @PreAuthorize("hasAuthority('ROLE_Cliente')")
+    public ResponseEntity<Void> cancelOrder(@PathVariable Long id) {
+        orderHandler.cancelOrder(id);
+        return ResponseEntity.ok().build();
+    }
 }
