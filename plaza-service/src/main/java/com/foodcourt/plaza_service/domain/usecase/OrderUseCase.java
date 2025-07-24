@@ -60,7 +60,8 @@ public class OrderUseCase implements IOrderServicePort {
                 null, // No hay estado previo
                 "PENDIENTE",
                 null,
-                null
+                null,
+                savedOrder.getRestaurantId()
         );
         traceabilityPersistencePort.logOrderTrace(trace);
     }
@@ -105,7 +106,8 @@ public class OrderUseCase implements IOrderServicePort {
                 "PENDIENTE",
                 "EN_PREPARACION",
                 employeeId,
-                employeeEmail
+                employeeEmail,
+                order.getRestaurantId()
         );
         traceabilityPersistencePort.logOrderTrace(trace);
     }
@@ -144,7 +146,8 @@ public class OrderUseCase implements IOrderServicePort {
                 "EN_PREPARACION",
                 "LISTO",
                 employeeId,
-                userContextProviderPort.getAuthenticatedUserEmail()
+                userContextProviderPort.getAuthenticatedUserEmail(),
+                order.getRestaurantId()
         );
         traceabilityPersistencePort.logOrderTrace(trace);
     }
@@ -180,7 +183,8 @@ public class OrderUseCase implements IOrderServicePort {
                 "LISTO",
                 "ENTREGADO",
                 employeeId,
-                userContextProviderPort.getAuthenticatedUserEmail()
+                userContextProviderPort.getAuthenticatedUserEmail(),
+                order.getRestaurantId()
         );
         traceabilityPersistencePort.logOrderTrace(trace);
     }
@@ -211,7 +215,8 @@ public class OrderUseCase implements IOrderServicePort {
                 "PENDIENTE",
                 "CANCELADO",
                 null, // No hay empleado involucrado
-                null
+                null,
+                order.getRestaurantId()
         );
         traceabilityPersistencePort.logOrderTrace(trace);
     }
