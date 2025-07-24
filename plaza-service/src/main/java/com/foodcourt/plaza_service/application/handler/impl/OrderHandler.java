@@ -1,5 +1,6 @@
 package com.foodcourt.plaza_service.application.handler.impl;
 
+import com.foodcourt.plaza_service.application.dto.request.OrderDeliverRequestDto;
 import com.foodcourt.plaza_service.application.dto.request.OrderRequestDto;
 import com.foodcourt.plaza_service.application.dto.response.OrderResponseDto;
 import com.foodcourt.plaza_service.application.handler.IOrderHandler;
@@ -46,5 +47,10 @@ public class OrderHandler implements IOrderHandler {
     @Override
     public void notifyOrderReady(Long orderId) {
         orderServicePort.notifyOrderReady(orderId);
+    }
+
+    @Override
+    public void deliverOrder(Long orderId, OrderDeliverRequestDto orderDeliverRequestDto) {
+        orderServicePort.deliverOrder(orderId, orderDeliverRequestDto.getPin());
     }
 }

@@ -26,4 +26,6 @@ public class DomainConstants {
     public static final String ORDER_NOT_FOUND_MESSAGE = "Orden no encontrada";
     public static final String ORDER_IS_NOT_IN_PREPARATION_MESSAGE = "El pedido no puede ser notificado porque no está en estado 'EN PREPARACION'.";
     public static final String ORDER_READY_MESSAGE = "El pedido esta listo, puede reclamarlo con el pin ";
+    public static final String ORDER_IS_NOT_READY_MESSAGE = "El pedido no puede ser entregado porque no está en estado 'LISTO'.";
+    public static final String INVALID_PIN_MESSAGE = "El PIN de seguridad proporcionado es incorrecto.";
 }

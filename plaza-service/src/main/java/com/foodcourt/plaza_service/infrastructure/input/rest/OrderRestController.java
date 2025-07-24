@@ -1,5 +1,6 @@
 package com.foodcourt.plaza_service.infrastructure.input.rest;
 
+import com.foodcourt.plaza_service.application.dto.request.OrderDeliverRequestDto;
 import com.foodcourt.plaza_service.application.dto.request.OrderRequestDto;
 import com.foodcourt.plaza_service.application.dto.response.OrderResponseDto;
 import com.foodcourt.plaza_service.application.handler.IOrderHandler;
@@ -75,6 +76,22 @@ public class OrderRestController {
     @PreAuthorize("hasAuthority('ROLE_Empleado')")
     public ResponseEntity<Void> notifyOrderReady(@PathVariable Long id) {
         orderHandler.notifyOrderReady(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Cambiar estado a 'Entregado'")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pedido actualizado", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, rol incorrecto", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Pedido no encontrado", content = @Content),
+            @ApiResponse(responseCode = "409", description = "El pedido no está en estado 'listo'", content = @Content)
+    })
+    @PatchMapping("/{id}/deliver")
+    @PreAuthorize("hasAuthority('ROLE_Empleado')")
+    public ResponseEntity<Void> deliverOrder(
+            @PathVariable Long id,
+            @RequestBody OrderDeliverRequestDto orderDeliverRequestDto) {
+        orderHandler.deliverOrder(id, orderDeliverRequestDto);
         return ResponseEntity.ok().build();
     }
 }
