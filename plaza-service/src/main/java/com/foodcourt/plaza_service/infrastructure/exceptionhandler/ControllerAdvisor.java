@@ -83,4 +83,18 @@ public class ControllerAdvisor {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Collections.singletonMap(MESSAGE, ex.getMessage()));
     }
+
+    @ExceptionHandler(OrderIsNotReadyException.class)
+    public ResponseEntity<Map<String, String>> handleOrderIsNotReadyException(
+            OrderIsNotReadyException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Collections.singletonMap(MESSAGE, ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidPinException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidPinException(
+            InvalidPinException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Collections.singletonMap(MESSAGE, ex.getMessage()));
+    }
 }

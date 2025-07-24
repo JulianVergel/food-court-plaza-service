@@ -226,4 +226,59 @@ class OrderUseCaseTest {
         assertThrows(OrderIsNotInPreparationException.class, () -> orderUseCase.notifyOrderReady(orderId));
         verify(messagingPersistencePort, never()).sendNotification(anyString(), anyString());
     }
+
+    @Test
+    void testDeliverOrder_Success() {
+        // Arrange
+        Long orderId = 1L;
+        Long employeeId = 66L;
+        Long restaurantId = 31L;
+        String correctPin = "1234";
+        Order readyOrder = new Order(orderId, 5L, LocalDate.now(), "LISTO", employeeId, restaurantId, correctPin);
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(employeeId);
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(readyOrder));
+
+        // --- AÑADE ESTA LÍNEA ---
+        when(employeePersistencePort.findRestaurantIdByEmployeeId(employeeId)).thenReturn(restaurantId);
+
+        // Act
+        orderUseCase.deliverOrder(orderId, correctPin);
+
+        // Assert
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+        verify(orderPersistencePort).saveOrder(orderCaptor.capture());
+        assertEquals("ENTREGADO", orderCaptor.getValue().getStatus());
+
+        verify(traceabilityPersistencePort, times(1)).logOrderTrace(any(Traceability.class));
+    }
+
+    @Test
+    void testDeliverOrder_FailsWhenOrderIsNotReady() {
+        // Arrange
+        Long orderId = 1L;
+        String pin = "1234";
+        Order inPreparationOrder = new Order(orderId, 5L, LocalDate.now(), "EN_PREPARACION", 66L, 31L, pin);
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(inPreparationOrder));
+
+        // Act & Assert
+        assertThrows(OrderIsNotReadyException.class, () -> orderUseCase.deliverOrder(orderId, pin));
+        verify(orderPersistencePort, never()).saveOrder(any());
+    }
+
+    @Test
+    void testDeliverOrder_FailsWhenPinIsInvalid() {
+        // Arrange
+        Long orderId = 1L;
+        String correctPin = "1234";
+        String wrongPin = "9999";
+        Order readyOrder = new Order(orderId, 5L, LocalDate.now(), "LISTO", 66L, 31L, correctPin);
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(readyOrder));
+
+        // Act & Assert
+        assertThrows(InvalidPinException.class, () -> orderUseCase.deliverOrder(orderId, wrongPin));
+        verify(orderPersistencePort, never()).saveOrder(any());
+    }
 }

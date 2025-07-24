@@ -11,4 +11,5 @@ public interface IOrderServicePort {
     Page<Order> listOrdersByStatus(String status, int page, int size);
     void assignOrderToEmployee(Long orderId);
     void notifyOrderReady(Long orderId);
+    void deliverOrder(Long orderId, String pin);
 }

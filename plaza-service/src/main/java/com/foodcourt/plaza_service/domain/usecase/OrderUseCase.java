@@ -148,4 +148,40 @@ public class OrderUseCase implements IOrderServicePort {
         );
         traceabilityPersistencePort.logOrderTrace(trace);
     }
+
+    @Override
+    public void deliverOrder(Long orderId, String pin) {
+        Long employeeId = userContextProviderPort.getAuthenticatedUserId();
+
+        Order order = orderPersistencePort.findById(orderId)
+                .orElseThrow(OrderNotFoundException::new);
+
+        if (!"LISTO".equalsIgnoreCase(order.getStatus())) {
+            throw new OrderIsNotReadyException();
+        }
+
+        if (!order.getSecurityPin().equals(pin)) {
+            throw new InvalidPinException();
+        }
+
+        Long employeeRestaurantId = employeePersistencePort.findRestaurantIdByEmployeeId(employeeId);
+        if (!employeeRestaurantId.equals(order.getRestaurantId())) {
+            throw new NotRestaurantOwnerException();
+        }
+
+        order.setStatus("ENTREGADO");
+        orderPersistencePort.saveOrder(order);
+
+        Traceability trace = new Traceability(
+                order.getId(),
+                order.getCustomerId(),
+                null,
+                LocalDateTime.now(),
+                "LISTO",
+                "ENTREGADO",
+                employeeId,
+                userContextProviderPort.getAuthenticatedUserEmail()
+        );
+        traceabilityPersistencePort.logOrderTrace(trace);
+    }
 }
