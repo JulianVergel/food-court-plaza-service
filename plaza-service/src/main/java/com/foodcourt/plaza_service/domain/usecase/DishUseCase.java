@@ -6,17 +6,15 @@ import com.foodcourt.plaza_service.domain.exception.NotRestaurantOwnerException;
 import com.foodcourt.plaza_service.domain.exception.RestaurantNotFoundException;
 import com.foodcourt.plaza_service.domain.exception.DishNotFoundException;
 import com.foodcourt.plaza_service.domain.model.Dish;
+import com.foodcourt.plaza_service.domain.model.Page;
+import com.foodcourt.plaza_service.domain.model.PaginationRequest;
 import com.foodcourt.plaza_service.domain.model.Restaurant;
 import com.foodcourt.plaza_service.domain.spi.ICategoryPersistencePort;
 import com.foodcourt.plaza_service.domain.spi.IDishPersistencePort;
 import com.foodcourt.plaza_service.domain.spi.IRestaurantPersistencePort;
 import com.foodcourt.plaza_service.domain.spi.IUserContextProviderPort;
+import com.foodcourt.plaza_service.domain.utils.constants.DomainConstants;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
-import static com.foodcourt.plaza_service.domain.utils.constants.DomainConstants.PRICE_DISH_NOT_VALID_MESSAGE;
 
 @RequiredArgsConstructor
 public class DishUseCase implements IDishServicePort {
@@ -40,8 +38,8 @@ public class DishUseCase implements IDishServicePort {
         categoryPersistencePort.findById(dish.getCategoryId())
                 .orElseThrow(CategoryNotFoundException::new);
 
-        if (dish.getPrice() <= 0) {
-            throw new IllegalArgumentException(PRICE_DISH_NOT_VALID_MESSAGE);
+        if (dish.getPrice() <= DomainConstants.MINIMUM_PRICE) {
+            throw new IllegalArgumentException(DomainConstants.PRICE_DISH_NOT_VALID_MESSAGE);
         }
 
         dish.setActive(true);
@@ -50,20 +48,10 @@ public class DishUseCase implements IDishServicePort {
 
     @Override
     public void updateDish(Long id, Dish dishUpdate) {
-        Long ownerId = userContextProviderPort.getAuthenticatedUserId();
+        Dish existingDish = findDishAndValidateOwnership(id);
 
-        Dish existingDish = dishPersistencePort.findById(id)
-                .orElseThrow(DishNotFoundException::new);
-
-        Restaurant restaurant = restaurantPersistencePort.findById(existingDish.getRestaurantId())
-                .orElseThrow(RestaurantNotFoundException::new);
-
-        if (!restaurant.getOwnerUserId().equals(ownerId)) {
-            throw new NotRestaurantOwnerException();
-        }
-
-        if (dishUpdate.getPrice() != null && dishUpdate.getPrice() <= 0) {
-            throw new IllegalArgumentException(PRICE_DISH_NOT_VALID_MESSAGE);
+        if (dishUpdate.getPrice() != null && dishUpdate.getPrice() <= DomainConstants.MINIMUM_PRICE) {
+            throw new IllegalArgumentException(DomainConstants.PRICE_DISH_NOT_VALID_MESSAGE);
         }
 
         existingDish.setPrice(dishUpdate.getPrice());
@@ -74,26 +62,29 @@ public class DishUseCase implements IDishServicePort {
 
     @Override
     public void enableDisableDish(Long id, boolean enable) {
-        Long ownerId = userContextProviderPort.getAuthenticatedUserId();
-
-        Dish existingDish = dishPersistencePort.findById(id)
-                .orElseThrow(DishNotFoundException::new);
-
-        Restaurant restaurant = restaurantPersistencePort.findById(existingDish.getRestaurantId())
-                .orElseThrow(RestaurantNotFoundException::new);
-
-        if (!restaurant.getOwnerUserId().equals(ownerId)) {
-            throw new NotRestaurantOwnerException();
-        }
-
+        Dish existingDish = findDishAndValidateOwnership(id);
         existingDish.setActive(enable);
-
         dishPersistencePort.saveDish(existingDish);
     }
 
     @Override
     public Page<Dish> listDishes(Long restaurantId, Long categoryId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return dishPersistencePort.listDishesByRestaurant(restaurantId, categoryId, pageable);
+        PaginationRequest paginationRequest = new PaginationRequest(page, size);
+        return dishPersistencePort.listDishesByRestaurant(restaurantId, categoryId, paginationRequest);
+    }
+
+    private Dish findDishAndValidateOwnership(Long dishId) {
+        Long ownerId = userContextProviderPort.getAuthenticatedUserId();
+
+        Dish dish = dishPersistencePort.findById(dishId)
+                .orElseThrow(DishNotFoundException::new);
+
+        Restaurant restaurant = restaurantPersistencePort.findById(dish.getRestaurantId())
+                .orElseThrow(RestaurantNotFoundException::new);
+
+        if (!restaurant.getOwnerUserId().equals(ownerId)) {
+            throw new NotRestaurantOwnerException();
+        }
+        return dish;
     }
 }

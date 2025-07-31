@@ -2,7 +2,7 @@ package com.foodcourt.plaza_service.application.handler;
 
 import com.foodcourt.plaza_service.application.dto.request.RestaurantRequestDto;
 import com.foodcourt.plaza_service.application.dto.response.RestaurantListResponseDto;
-import org.springframework.data.domain.Page;
+import com.foodcourt.plaza_service.domain.model.Page;
 
 public interface IRestaurantHandler {
     void saveRestaurant(RestaurantRequestDto restaurantRequestDto);

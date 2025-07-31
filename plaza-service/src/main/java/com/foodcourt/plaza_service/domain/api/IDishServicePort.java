@@ -1,7 +1,7 @@
 package com.foodcourt.plaza_service.domain.api;
 
 import com.foodcourt.plaza_service.domain.model.Dish;
-import org.springframework.data.domain.Page;
+import com.foodcourt.plaza_service.domain.model.Page;
 
 public interface IDishServicePort {
     void saveDish(Dish dish);

@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import static com.foodcourt.plaza_service.infrastructure.utils.constants.FeignConstants.AUTHORIZATION_HEADER;
+
 @Component
 public class FeignClientInterceptor implements RequestInterceptor {
-
-    private static final String AUTHORIZATION_HEADER = "Authorization";
 
     @Override
     public void apply(RequestTemplate template) {

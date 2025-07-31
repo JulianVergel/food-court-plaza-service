@@ -8,7 +8,6 @@ class RestaurantTest {
 
     @Test
     void testRestaurantModel() {
-        // Arrange
         Long id = 1L;
         String name = "El Sabor";
         String address = "Calle 10";
@@ -17,10 +16,8 @@ class RestaurantTest {
         String logoUrl = "url.com/logo.png";
         String nit = "12345";
 
-        // Act
         Restaurant restaurant = new Restaurant(id, name, address, ownerId, phone, logoUrl, nit);
 
-        // Assert
         assertEquals(id, restaurant.getId());
         assertEquals(name, restaurant.getName());
         assertEquals(address, restaurant.getAddress());

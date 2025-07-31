@@ -2,7 +2,7 @@ package com.foodcourt.plaza_service.domain.api;
 
 import com.foodcourt.plaza_service.domain.model.Order;
 import com.foodcourt.plaza_service.domain.model.OrderDish;
-import org.springframework.data.domain.Page;
+import com.foodcourt.plaza_service.domain.model.Page;
 
 import java.util.List;
 

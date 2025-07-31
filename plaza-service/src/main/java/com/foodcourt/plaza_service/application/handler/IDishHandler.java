@@ -4,7 +4,7 @@ import com.foodcourt.plaza_service.application.dto.request.DishEnableDisableRequ
 import com.foodcourt.plaza_service.application.dto.request.DishRequestDto;
 import com.foodcourt.plaza_service.application.dto.request.DishUpdateRequestDto;
 import com.foodcourt.plaza_service.application.dto.response.DishListResponseDto;
-import org.springframework.data.domain.Page;
+import com.foodcourt.plaza_service.domain.model.Page;
 
 public interface IDishHandler {
     void saveDish(DishRequestDto dishRequestDto);

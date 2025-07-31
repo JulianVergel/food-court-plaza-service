@@ -1,6 +1,9 @@
 package com.foodcourt.plaza_service.domain.usecase;
 
+import com.foodcourt.plaza_service.domain.exception.InvalidRestaurantNameException;
 import com.foodcourt.plaza_service.domain.exception.UserNotAnOwnerException;
+import com.foodcourt.plaza_service.domain.model.Page;
+import com.foodcourt.plaza_service.domain.model.PaginationRequest;
 import com.foodcourt.plaza_service.domain.model.Restaurant;
 import com.foodcourt.plaza_service.domain.spi.IRestaurantPersistencePort;
 import com.foodcourt.plaza_service.domain.spi.IUserValidationPort;
@@ -11,10 +14,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
 import java.util.Collections;
 
@@ -47,7 +46,7 @@ class RestaurantUseCaseTest {
         restaurant.setAddress("Calle Falsa 123");
         restaurant.setPhone("+573101234567");
         restaurant.setLogoUrl("http://logo.com/logo.png");
-        restaurant.setOwnerUserId(5L); // ID del propietario
+        restaurant.setOwnerUserId(5L);
     }
 
     @Test
@@ -70,32 +69,35 @@ class RestaurantUseCaseTest {
 
     @Test
     void testSaveRestaurant_FailsWithInvalidName() {
-        restaurant.setName("12345"); // Nombre inválido
+        Restaurant restaurant = new Restaurant();
+        restaurant.setName("12345");
+        restaurant.setNit("123456789");
+        restaurant.setPhone("+573001234567");
+        restaurant.setOwnerUserId(5L);
+
         when(userValidationPort.isUserOwner(5L)).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> restaurantUseCase.saveRestaurant(restaurant));
+        assertThrows(InvalidRestaurantNameException.class, () -> restaurantUseCase.saveRestaurant(restaurant));
 
-        verify(restaurantPersistencePort, never()).saveRestaurant(any());
+        verify(restaurantPersistencePort, never()).saveRestaurant(any(Restaurant.class));
     }
 
     @Test
     void testListRestaurants() {
         int page = 0;
         int size = 10;
-        Page<Restaurant> expectedPage = new PageImpl<>(Collections.singletonList(new Restaurant()));
+        Page<Restaurant> expectedPage = new Page<>(Collections.singletonList(new Restaurant()), 1L, 1, page, size);
 
-        when(restaurantPersistencePort.listAllRestaurants(any(Pageable.class))).thenReturn(expectedPage);
-
-        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        when(restaurantPersistencePort.listAllRestaurants(any(PaginationRequest.class))).thenReturn(expectedPage);
 
         Page<Restaurant> result = restaurantUseCase.listRestaurants(page, size);
 
-        verify(restaurantPersistencePort).listAllRestaurants(pageableCaptor.capture());
-        Pageable capturedPageable = pageableCaptor.getValue();
+        ArgumentCaptor<PaginationRequest> paginationRequestCaptor = ArgumentCaptor.forClass(PaginationRequest.class);
+        verify(restaurantPersistencePort).listAllRestaurants(paginationRequestCaptor.capture());
+        PaginationRequest capturedRequest = paginationRequestCaptor.getValue();
 
-        assertEquals(page, capturedPageable.getPageNumber());
-        assertEquals(size, capturedPageable.getPageSize());
-        assertEquals(Sort.by("name").ascending(), capturedPageable.getSort());
+        assertEquals(page, capturedRequest.getPageNumber());
+        assertEquals(size, capturedRequest.getPageSize());
 
         assertEquals(expectedPage, result);
     }

@@ -7,7 +7,6 @@ class DishTest {
 
     @Test
     void testDishModel() {
-        // Arrange
         Dish dish = new Dish();
         dish.setId(1L);
         dish.setName("Pizza Hawaiana");
@@ -18,7 +17,6 @@ class DishTest {
         dish.setRestaurantId(10L);
         dish.setCategoryId(2L);
 
-        // Act & Assert
         assertEquals(1L, dish.getId());
         assertEquals("Pizza Hawaiana", dish.getName());
         assertEquals("Pizza con piña y jamón", dish.getDescription());
@@ -31,10 +29,8 @@ class DishTest {
 
     @Test
     void testAllArgsConstructor() {
-        // Arrange & Act
         Dish dish = new Dish(1L, "Lasaña", "Lasaña de carne", 30000L, "url.com/lasana.png", false, 11L, 3L);
 
-        // Assert
         assertNotNull(dish);
         assertEquals("Lasaña", dish.getName());
     }

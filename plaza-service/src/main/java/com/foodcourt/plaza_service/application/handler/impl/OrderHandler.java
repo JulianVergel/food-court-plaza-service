@@ -9,8 +9,8 @@ import com.foodcourt.plaza_service.application.mapper.response.IOrderResponseMap
 import com.foodcourt.plaza_service.domain.api.IOrderServicePort;
 import com.foodcourt.plaza_service.domain.model.Order;
 import com.foodcourt.plaza_service.domain.model.OrderDish;
+import com.foodcourt.plaza_service.domain.model.Page;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

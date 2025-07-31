@@ -2,6 +2,8 @@ package com.foodcourt.plaza_service.infrastructure.output.jpa.adapter;
 
 import com.foodcourt.plaza_service.domain.model.Order;
 import com.foodcourt.plaza_service.domain.model.OrderDish;
+import com.foodcourt.plaza_service.domain.model.Page;
+import com.foodcourt.plaza_service.domain.model.PaginationRequest;
 import com.foodcourt.plaza_service.domain.spi.IOrderPersistencePort;
 import com.foodcourt.plaza_service.infrastructure.output.jpa.entity.DishEntity;
 import com.foodcourt.plaza_service.infrastructure.output.jpa.entity.OrderDishEntity;
@@ -11,7 +13,7 @@ import com.foodcourt.plaza_service.infrastructure.output.jpa.mapper.IOrderEntity
 import com.foodcourt.plaza_service.infrastructure.output.jpa.repository.IOrderDishJpaRepository;
 import com.foodcourt.plaza_service.infrastructure.output.jpa.repository.IOrderJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -61,9 +63,18 @@ public class OrderJpaAdapter implements IOrderPersistencePort {
     }
 
     @Override
-    public Page<Order> findByRestaurantIdAndStatus(Long restaurantId, String status, Pageable pageable) {
-        Page<OrderEntity> orderEntityPage = orderRepository.findByRestaurantIdAndStatus(restaurantId, status, pageable);
-        return orderEntityPage.map(orderEntityMapper::toOrder);
+    public Page<Order> findByRestaurantIdAndStatus(Long restaurantId, String status, PaginationRequest paginationRequest) {
+        Pageable pageable = PageRequest.of(paginationRequest.getPageNumber(), paginationRequest.getPageSize());
+
+        org.springframework.data.domain.Page<OrderEntity> springPage = orderRepository.findByRestaurantIdAndStatus(restaurantId, status, pageable);
+
+        List<Order> domainOrders = springPage.getContent()
+                .stream()
+                .map(orderEntityMapper::toOrder)
+                .collect(Collectors.toList());
+
+        return new Page<>(domainOrders, springPage.getTotalElements(), springPage.getTotalPages(),
+                springPage.getNumber(), springPage.getSize());
     }
 
     @Override

@@ -2,18 +2,14 @@ package com.foodcourt.plaza_service.domain.usecase;
 
 import com.foodcourt.plaza_service.domain.api.IOrderServicePort;
 import com.foodcourt.plaza_service.domain.exception.ClientHasAnOrderException;
-import com.foodcourt.plaza_service.domain.model.Order;
-import com.foodcourt.plaza_service.domain.model.OrderDish;
-import com.foodcourt.plaza_service.domain.model.Traceability;
+import com.foodcourt.plaza_service.domain.model.*;
 import com.foodcourt.plaza_service.domain.spi.IOrderPersistencePort;
 import com.foodcourt.plaza_service.domain.spi.ITraceabilityPersistencePort;
 import com.foodcourt.plaza_service.domain.spi.IUserContextProviderPort;
 import com.foodcourt.plaza_service.domain.exception.*;
 import com.foodcourt.plaza_service.domain.spi.*;
+import com.foodcourt.plaza_service.domain.utils.constants.DomainConstants;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,10 +17,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import static com.foodcourt.plaza_service.domain.utils.constants.DomainConstants.ORDER_READY_MESSAGE;
-
 @RequiredArgsConstructor
 public class OrderUseCase implements IOrderServicePort {
+
+    private static final Random RANDOM = new Random();
 
     private final IOrderPersistencePort orderPersistencePort;
     private final IUserContextProviderPort userContextProviderPort;
@@ -36,186 +32,142 @@ public class OrderUseCase implements IOrderServicePort {
     @Override
     public void createOrder(Order order, List<OrderDish> orderDishes) {
         Long customerId = userContextProviderPort.getAuthenticatedUserId();
-        String customerEmail = userContextProviderPort.getAuthenticatedUserEmail();
 
-        List<String> statuses = Arrays.asList("PENDIENTE", "EN_PREPARACION", "LISTO");
+        List<String> statuses = Arrays.asList(DomainConstants.STATUS_PENDING,
+                DomainConstants.STATUS_IN_PREPARATION, DomainConstants.STATUS_READY);
         if (orderPersistencePort.existsByCustomerIdAndStatusIn(customerId, statuses)) {
             throw new ClientHasAnOrderException();
         }
 
         order.setCustomerId(customerId);
         order.setOrderDate(LocalDate.now());
-        order.setStatus("PENDIENTE");
+        order.setStatus(DomainConstants.STATUS_PENDING);
 
         Order savedOrder = orderPersistencePort.saveOrder(order);
 
         orderDishes.forEach(od -> od.setOrderId(savedOrder.getId()));
         orderPersistencePort.saveOrderDish(orderDishes);
 
-        Traceability trace = new Traceability(
-                savedOrder.getId(),
-                customerId,
-                customerEmail,
-                LocalDateTime.now(),
-                null, // No hay estado previo
-                "PENDIENTE",
-                null,
-                null,
-                savedOrder.getRestaurantId()
-        );
-        traceabilityPersistencePort.logOrderTrace(trace);
+        logTrace(savedOrder, null, savedOrder.getStatus());
     }
 
     @Override
     public Page<Order> listOrdersByStatus(String status, int page, int size) {
         Long employeeId = userContextProviderPort.getAuthenticatedUserId();
-
         Long restaurantId = employeePersistencePort.findRestaurantIdByEmployeeId(employeeId);
-
-        Pageable pageable = PageRequest.of(page, size);
-
-        return orderPersistencePort.findByRestaurantIdAndStatus(restaurantId, status, pageable);
+        PaginationRequest paginationRequest = new PaginationRequest(page, size);
+        return orderPersistencePort.findByRestaurantIdAndStatus(restaurantId, status, paginationRequest);
     }
 
     @Override
     public void assignOrderToEmployee(Long orderId) {
-        Long employeeId = userContextProviderPort.getAuthenticatedUserId();
-        String employeeEmail = userContextProviderPort.getAuthenticatedUserEmail();
+        Order order = findOrderAndValidateOwnership(orderId);
 
-        Order order = orderPersistencePort.findById(orderId)
-                .orElseThrow(OrderNotFoundException::new);
-
-        if (!"PENDIENTE".equalsIgnoreCase(order.getStatus())) {
+        if (!DomainConstants.STATUS_PENDING.equalsIgnoreCase(order.getStatus())) {
             throw new OrderCannotBeAssignedException();
         }
 
-        Long employeeRestaurantId = employeePersistencePort.findRestaurantIdByEmployeeId(employeeId);
-        if (!employeeRestaurantId.equals(order.getRestaurantId())) {
-            throw new NotRestaurantOwnerException();
-        }
-
-        order.setChefId(employeeId);
-        order.setStatus("EN_PREPARACION");
+        String previousStatus = order.getStatus();
+        order.setChefId(userContextProviderPort.getAuthenticatedUserId());
+        order.setStatus(DomainConstants.STATUS_IN_PREPARATION);
         orderPersistencePort.saveOrder(order);
 
-        Traceability trace = new Traceability(
-                order.getId(),
-                order.getCustomerId(),
-                null,
-                LocalDateTime.now(),
-                "PENDIENTE",
-                "EN_PREPARACION",
-                employeeId,
-                employeeEmail,
-                order.getRestaurantId()
-        );
-        traceabilityPersistencePort.logOrderTrace(trace);
+        logTrace(order, previousStatus, order.getStatus());
     }
 
     @Override
     public void notifyOrderReady(Long orderId) {
-        Long employeeId = userContextProviderPort.getAuthenticatedUserId();
+        Order order = findOrderAndValidateOwnership(orderId);
 
-        Order order = orderPersistencePort.findById(orderId)
-                .orElseThrow(OrderNotFoundException::new);
-
-        if (!"EN_PREPARACION".equalsIgnoreCase(order.getStatus())) {
+        if (!DomainConstants.STATUS_IN_PREPARATION.equalsIgnoreCase(order.getStatus())) {
             throw new OrderIsNotInPreparationException();
         }
 
-        Long employeeRestaurantId = employeePersistencePort.findRestaurantIdByEmployeeId(employeeId);
-        if (!employeeRestaurantId.equals(order.getRestaurantId())) {
-            throw new NotRestaurantOwnerException();
-        }
+        String pin = String.format(DomainConstants.PIN_FORMAT, RANDOM.nextInt(DomainConstants.PIN_SIZE));
+        String previousStatus = order.getStatus();
 
-        String pin = String.format("%04d", new Random().nextInt(10000));
-
-        order.setStatus("LISTO");
+        order.setStatus(DomainConstants.STATUS_READY);
         order.setSecurityPin(pin);
         orderPersistencePort.saveOrder(order);
 
         String customerPhone = userPersistencePort.findUserPhoneById(order.getCustomerId());
-        String message = ORDER_READY_MESSAGE + pin;
-        messagingPersistencePort.sendNotification(customerPhone, message);
+        messagingPersistencePort.sendNotification(customerPhone, DomainConstants.ORDER_READY_MESSAGE + pin);
 
-        Traceability trace = new Traceability(
-                order.getId(),
-                order.getCustomerId(),
-                null,
-                LocalDateTime.now(),
-                "EN_PREPARACION",
-                "LISTO",
-                employeeId,
-                userContextProviderPort.getAuthenticatedUserEmail(),
-                order.getRestaurantId()
-        );
-        traceabilityPersistencePort.logOrderTrace(trace);
+        logTrace(order, previousStatus, order.getStatus());
     }
 
     @Override
     public void deliverOrder(Long orderId, String pin) {
-        Long employeeId = userContextProviderPort.getAuthenticatedUserId();
+        Order order = findOrderAndValidateOwnership(orderId);
 
-        Order order = orderPersistencePort.findById(orderId)
-                .orElseThrow(OrderNotFoundException::new);
-
-        if (!"LISTO".equalsIgnoreCase(order.getStatus())) {
+        if (!DomainConstants.STATUS_READY.equalsIgnoreCase(order.getStatus())) {
             throw new OrderIsNotReadyException();
         }
-
         if (!order.getSecurityPin().equals(pin)) {
             throw new InvalidPinException();
         }
 
-        Long employeeRestaurantId = employeePersistencePort.findRestaurantIdByEmployeeId(employeeId);
-        if (!employeeRestaurantId.equals(order.getRestaurantId())) {
-            throw new NotRestaurantOwnerException();
-        }
-
-        order.setStatus("ENTREGADO");
+        String previousStatus = order.getStatus();
+        order.setStatus(DomainConstants.STATUS_DELIVERED);
         orderPersistencePort.saveOrder(order);
 
-        Traceability trace = new Traceability(
-                order.getId(),
-                order.getCustomerId(),
-                null,
-                LocalDateTime.now(),
-                "LISTO",
-                "ENTREGADO",
-                employeeId,
-                userContextProviderPort.getAuthenticatedUserEmail(),
-                order.getRestaurantId()
-        );
-        traceabilityPersistencePort.logOrderTrace(trace);
+        logTrace(order, previousStatus, order.getStatus());
     }
 
     @Override
     public void cancelOrder(Long orderId) {
         Long customerId = userContextProviderPort.getAuthenticatedUserId();
-
         Order order = orderPersistencePort.findById(orderId)
                 .orElseThrow(OrderNotFoundException::new);
 
         if (!order.getCustomerId().equals(customerId)) {
             throw new UserCanNotCancelOrderException();
         }
-
-        if (!"PENDIENTE".equalsIgnoreCase(order.getStatus())) {
+        if (!DomainConstants.STATUS_PENDING.equalsIgnoreCase(order.getStatus())) {
             throw new OrderCannotBeCanceledException();
         }
 
-        order.setStatus("CANCELADO");
+        String previousStatus = order.getStatus();
+        order.setStatus(DomainConstants.STATUS_CANCELED);
         orderPersistencePort.saveOrder(order);
+
+        logTrace(order, previousStatus, order.getStatus());
+    }
+
+    private Order findOrderAndValidateOwnership(Long orderId) {
+        Long employeeId = userContextProviderPort.getAuthenticatedUserId();
+        Order order = orderPersistencePort.findById(orderId)
+                .orElseThrow(OrderNotFoundException::new);
+
+        Long employeeRestaurantId = employeePersistencePort.findRestaurantIdByEmployeeId(employeeId);
+        if (!employeeRestaurantId.equals(order.getRestaurantId())) {
+            throw new NotRestaurantOwnerException();
+        }
+        return order;
+    }
+
+    private void logTrace(Order order, String previousStatus, String newStatus) {
+        Long customerId = order.getCustomerId();
+        Long employeeId = userContextProviderPort.getAuthenticatedUserId(); // Asumimos que el empleado es el que actúa
+        String customerEmail = null;
+        String employeeEmail = null;
+
+        if (newStatus.equals(DomainConstants.STATUS_PENDING) || newStatus.equals(DomainConstants.STATUS_CANCELED)) {
+            employeeId = null; // No hay empleado en estas acciones
+            customerEmail = userContextProviderPort.getAuthenticatedUserEmail();
+        } else {
+            employeeEmail = userContextProviderPort.getAuthenticatedUserEmail();
+        }
 
         Traceability trace = new Traceability(
                 order.getId(),
-                order.getCustomerId(),
-                userContextProviderPort.getAuthenticatedUserEmail(),
+                customerId,
+                customerEmail,
                 LocalDateTime.now(),
-                "PENDIENTE",
-                "CANCELADO",
-                null, // No hay empleado involucrado
-                null,
+                previousStatus,
+                newStatus,
+                employeeId,
+                employeeEmail,
                 order.getRestaurantId()
         );
         traceabilityPersistencePort.logOrderTrace(trace);

@@ -1,27 +1,30 @@
 package com.foodcourt.plaza_service.domain.utils.validations;
 
+import com.foodcourt.plaza_service.domain.exception.InvalidNitException;
+import com.foodcourt.plaza_service.domain.exception.InvalidPhoneException;
+import com.foodcourt.plaza_service.domain.exception.InvalidRestaurantNameException;
 import com.foodcourt.plaza_service.domain.model.Restaurant;
+import com.foodcourt.plaza_service.domain.utils.constants.DomainConstants;
 
-import static com.foodcourt.plaza_service.domain.utils.constants.DomainConstants.*;
 
 public class RestaurantValidator {
     private RestaurantValidator() {}
 
     public static void validateName(String name) {
-        if (name.matches("^\\d+$")) {
-            throw new IllegalArgumentException(NAME_FIELD_NOT_ONLY_NUMBERS_MESSAGE);
+        if (name.matches(DomainConstants.NUMERIC_REGEX)) {
+            throw new InvalidRestaurantNameException();
         }
     }
 
     public static void validateNit(String nit) {
-        if (!nit.matches("^\\d+$")) {
-            throw new IllegalArgumentException(NIT_FIELD_MUST_BE_NUMERIC_MESSAGE);
+        if (!nit.matches(DomainConstants.NUMERIC_REGEX)) {
+            throw new InvalidNitException();
         }
     }
 
     public static void validatePhone(String phone) {
-        if (!phone.matches("^\\+?\\d{1,12}$") || phone.length() > 13) {
-            throw new IllegalArgumentException(PHONE_FIELD_INVALID_MESSAGE);
+        if (!phone.matches(DomainConstants.PHONE_REGEX) || phone.length() > DomainConstants.MAX_PHONE_LENGTH) {
+            throw new InvalidPhoneException();
         }
     }
 

@@ -9,8 +9,8 @@ import com.foodcourt.plaza_service.application.mapper.request.IDishRequestMapper
 import com.foodcourt.plaza_service.application.mapper.response.IDishResponseMapper;
 import com.foodcourt.plaza_service.domain.api.IDishServicePort;
 import com.foodcourt.plaza_service.domain.model.Dish;
+import com.foodcourt.plaza_service.domain.model.Page;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

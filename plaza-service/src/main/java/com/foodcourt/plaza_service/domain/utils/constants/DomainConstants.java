@@ -30,4 +30,17 @@ public class DomainConstants {
     public static final String INVALID_PIN_MESSAGE = "El PIN de seguridad proporcionado es incorrecto.";
     public static final String ORDER_CAN_NOT_BE_CANCELED_MESSAGE = "Lo sentimos, tu pedido ya está en preparación y no puede cancelarse.";
     public static final String USER_CAN_NOT_CANCEL_ORDER_MESSAGE = "No tienes permiso para cancelar este pedido.";
+
+    public static final int MINIMUM_PRICE = 0;
+    public static final String PIN_FORMAT = "%04d";
+    public static final int PIN_SIZE = 10000;
+    public static final String STATUS_PENDING = "PENDIENTE";
+    public static final String STATUS_IN_PREPARATION = "EN_PREPARACION";
+    public static final String STATUS_READY = "LISTO";
+    public static final String STATUS_DELIVERED = "ENTREGADO";
+    public static final String STATUS_CANCELED = "CANCELADO";
+
+    public static final String NUMERIC_REGEX = "^\\d+$";
+    public static final String PHONE_REGEX = "^\\+?\\d{1,12}$";
+    public static final int MAX_PHONE_LENGTH = 13;
 }

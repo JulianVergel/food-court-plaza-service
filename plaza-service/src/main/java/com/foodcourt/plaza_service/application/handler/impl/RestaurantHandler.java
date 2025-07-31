@@ -6,10 +6,10 @@ import com.foodcourt.plaza_service.application.handler.IRestaurantHandler;
 import com.foodcourt.plaza_service.application.mapper.request.IRestaurantRequestMapper;
 import com.foodcourt.plaza_service.application.mapper.response.IRestaurantResponseMapper;
 import com.foodcourt.plaza_service.domain.api.IRestaurantServicePort;
+import com.foodcourt.plaza_service.domain.model.Page;
 import com.foodcourt.plaza_service.domain.model.Restaurant;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 @Service

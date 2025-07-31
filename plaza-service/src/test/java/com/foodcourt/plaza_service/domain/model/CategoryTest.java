@@ -7,13 +7,11 @@ class CategoryTest {
 
     @Test
     void testCategoryModel() {
-        // Arrange
         Category category = new Category();
         category.setId(1L);
         category.setName("Comida Italiana");
         category.setDescription("Platos originarios de Italia.");
 
-        // Act & Assert
         assertEquals(1L, category.getId());
         assertEquals("Comida Italiana", category.getName());
         assertEquals("Platos originarios de Italia.", category.getDescription());
