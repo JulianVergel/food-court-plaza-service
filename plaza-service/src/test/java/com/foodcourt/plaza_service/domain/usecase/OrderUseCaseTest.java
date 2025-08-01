@@ -130,7 +130,7 @@ class OrderUseCaseTest {
         assertEquals("LISTO", orderCaptor.getValue().getStatus());
         assertNotNull(orderCaptor.getValue().getSecurityPin());
 
-        verify(messagingPersistencePort, times(1)).sendNotification(anyString(), eq(customerPhone));
+        verify(messagingPersistencePort, times(1)).sendNotification(eq(customerPhone), anyString());
     }
 
     @Test
