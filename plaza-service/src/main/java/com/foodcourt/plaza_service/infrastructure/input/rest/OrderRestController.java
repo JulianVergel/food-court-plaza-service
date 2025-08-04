@@ -4,13 +4,12 @@ import com.foodcourt.plaza_service.application.dto.request.OrderDeliverRequestDt
 import com.foodcourt.plaza_service.application.dto.request.OrderRequestDto;
 import com.foodcourt.plaza_service.application.dto.response.OrderResponseDto;
 import com.foodcourt.plaza_service.application.handler.IOrderHandler;
-import com.foodcourt.plaza_service.domain.model.Page;
+import com.foodcourt.plaza_service.domain.model.PaginationResponse;
 import com.foodcourt.plaza_service.infrastructure.input.doc.StandardApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +40,7 @@ public class OrderRestController {
     @StandardApiResponses
     @GetMapping("/")
     @PreAuthorize("hasAuthority('ROLE_Empleado')")
-    public ResponseEntity<Page<OrderResponseDto>> listOrdersByStatus(
+    public ResponseEntity<PaginationResponse<OrderResponseDto>> listOrdersByStatus(
             @Parameter(description = STATUS_PARAM_DESCRIPTION) @RequestParam String status,
             @Parameter(description = PAGE_PARAM_DESCRIPTION) @RequestParam(defaultValue = PAGE_DEFAULT_VALUE) int page,
             @Parameter(description = SIZE_PARAM_DESCRIPTION) @RequestParam(defaultValue = SIZE_DEFAULT_VALUE) int size

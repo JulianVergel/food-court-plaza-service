@@ -2,7 +2,7 @@ package com.foodcourt.plaza_service.domain.usecase;
 
 import com.foodcourt.plaza_service.domain.api.IRestaurantServicePort;
 import com.foodcourt.plaza_service.domain.exception.UserNotAnOwnerException;
-import com.foodcourt.plaza_service.domain.model.Page;
+import com.foodcourt.plaza_service.domain.model.PaginationResponse;
 import com.foodcourt.plaza_service.domain.model.PaginationRequest;
 import com.foodcourt.plaza_service.domain.model.Restaurant;
 import com.foodcourt.plaza_service.domain.spi.IRestaurantPersistencePort;
@@ -28,7 +28,7 @@ public class RestaurantUseCase implements IRestaurantServicePort {
     }
 
     @Override
-    public Page<Restaurant> listRestaurants(int page, int size) {
+    public PaginationResponse<Restaurant> listRestaurants(int page, int size) {
         PaginationRequest paginationRequest = new PaginationRequest(page, size);
         return restaurantPersistencePort.listAllRestaurants(paginationRequest);
     }

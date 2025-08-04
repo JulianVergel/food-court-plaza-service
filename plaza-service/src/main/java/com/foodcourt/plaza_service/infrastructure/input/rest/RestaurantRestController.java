@@ -3,7 +3,7 @@ package com.foodcourt.plaza_service.infrastructure.input.rest;
 import com.foodcourt.plaza_service.application.dto.request.RestaurantRequestDto;
 import com.foodcourt.plaza_service.application.dto.response.RestaurantListResponseDto;
 import com.foodcourt.plaza_service.application.handler.IRestaurantHandler;
-import com.foodcourt.plaza_service.domain.model.Page;
+import com.foodcourt.plaza_service.domain.model.PaginationResponse;
 import com.foodcourt.plaza_service.infrastructure.input.doc.StandardApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,7 +41,7 @@ public class RestaurantRestController {
     })
     @GetMapping("/")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<RestaurantListResponseDto>> listRestaurants(
+    public ResponseEntity<PaginationResponse<RestaurantListResponseDto>> listRestaurants(
             @Parameter(description = PAGE_PARAM_DESCRIPTION) @RequestParam(defaultValue = PAGE_DEFAULT_VALUE) int page,
             @Parameter(description = SIZE_PARAM_DESCRIPTION) @RequestParam(defaultValue = SIZE_DEFAULT_VALUE) int size
     ) {

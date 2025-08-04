@@ -207,15 +207,15 @@ class DishUseCaseTest {
         Long categoryId = 5L;
         int page = 0;
         int size = 10;
-        Page<Dish> expectedPage = new Page<>(Collections.singletonList(new Dish()), 1L, 1, page, size);
+        PaginationResponse<Dish> expectedPaginationResponse = new PaginationResponse<>(Collections.singletonList(new Dish()), 1L, 1, page, size);
 
         when(dishPersistencePort.listDishesByRestaurant(eq(restaurantId), eq(categoryId), any(PaginationRequest.class)))
-                .thenReturn(expectedPage);
+                .thenReturn(expectedPaginationResponse);
 
-        Page<Dish> result = dishUseCase.listDishes(restaurantId, categoryId, page, size);
+        PaginationResponse<Dish> result = dishUseCase.listDishes(restaurantId, categoryId, page, size);
 
         verify(dishPersistencePort).listDishesByRestaurant(eq(restaurantId), eq(categoryId), any(PaginationRequest.class));
-        assertEquals(expectedPage, result);
+        assertEquals(expectedPaginationResponse, result);
     }
 
     @Test
@@ -223,14 +223,14 @@ class DishUseCaseTest {
         Long restaurantId = 1L;
         int page = 0;
         int size = 10;
-        Page<Dish> expectedPage = new Page<>(Collections.singletonList(new Dish()), 1L, 1, page, size);
+        PaginationResponse<Dish> expectedPaginationResponse = new PaginationResponse<>(Collections.singletonList(new Dish()), 1L, 1, page, size);
 
         when(dishPersistencePort.listDishesByRestaurant(eq(restaurantId), isNull(), any(PaginationRequest.class)))
-                .thenReturn(expectedPage);
+                .thenReturn(expectedPaginationResponse);
 
-        Page<Dish> result = dishUseCase.listDishes(restaurantId, null, page, size);
+        PaginationResponse<Dish> result = dishUseCase.listDishes(restaurantId, null, page, size);
 
         verify(dishPersistencePort).listDishesByRestaurant(eq(restaurantId), isNull(), any(PaginationRequest.class));
-        assertEquals(expectedPage, result);
+        assertEquals(expectedPaginationResponse, result);
     }
 }

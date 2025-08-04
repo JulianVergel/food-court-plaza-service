@@ -2,7 +2,7 @@ package com.foodcourt.plaza_service.domain.usecase;
 
 import com.foodcourt.plaza_service.domain.exception.InvalidRestaurantNameException;
 import com.foodcourt.plaza_service.domain.exception.UserNotAnOwnerException;
-import com.foodcourt.plaza_service.domain.model.Page;
+import com.foodcourt.plaza_service.domain.model.PaginationResponse;
 import com.foodcourt.plaza_service.domain.model.PaginationRequest;
 import com.foodcourt.plaza_service.domain.model.Restaurant;
 import com.foodcourt.plaza_service.domain.spi.IRestaurantPersistencePort;
@@ -86,11 +86,11 @@ class RestaurantUseCaseTest {
     void testListRestaurants() {
         int page = 0;
         int size = 10;
-        Page<Restaurant> expectedPage = new Page<>(Collections.singletonList(new Restaurant()), 1L, 1, page, size);
+        PaginationResponse<Restaurant> expectedPaginationResponse = new PaginationResponse<>(Collections.singletonList(new Restaurant()), 1L, 1, page, size);
 
-        when(restaurantPersistencePort.listAllRestaurants(any(PaginationRequest.class))).thenReturn(expectedPage);
+        when(restaurantPersistencePort.listAllRestaurants(any(PaginationRequest.class))).thenReturn(expectedPaginationResponse);
 
-        Page<Restaurant> result = restaurantUseCase.listRestaurants(page, size);
+        PaginationResponse<Restaurant> result = restaurantUseCase.listRestaurants(page, size);
 
         ArgumentCaptor<PaginationRequest> paginationRequestCaptor = ArgumentCaptor.forClass(PaginationRequest.class);
         verify(restaurantPersistencePort).listAllRestaurants(paginationRequestCaptor.capture());
@@ -99,6 +99,6 @@ class RestaurantUseCaseTest {
         assertEquals(page, capturedRequest.getPageNumber());
         assertEquals(size, capturedRequest.getPageSize());
 
-        assertEquals(expectedPage, result);
+        assertEquals(expectedPaginationResponse, result);
     }
 }

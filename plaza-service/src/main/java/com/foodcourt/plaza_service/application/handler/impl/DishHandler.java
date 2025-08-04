@@ -9,7 +9,7 @@ import com.foodcourt.plaza_service.application.mapper.request.IDishRequestMapper
 import com.foodcourt.plaza_service.application.mapper.response.IDishResponseMapper;
 import com.foodcourt.plaza_service.domain.api.IDishServicePort;
 import com.foodcourt.plaza_service.domain.model.Dish;
-import com.foodcourt.plaza_service.domain.model.Page;
+import com.foodcourt.plaza_service.domain.model.PaginationResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,8 +41,8 @@ public class DishHandler implements IDishHandler {
     }
 
     @Override
-    public Page<DishListResponseDto> listDishes(Long restaurantId, Long categoryId, int page, int size) {
-        Page<Dish> dishPage = dishServicePort.listDishes(restaurantId, categoryId, page, size);
-        return dishPage.map(dishResponseMapper::toListResponse);
+    public PaginationResponse<DishListResponseDto> listDishes(Long restaurantId, Long categoryId, int page, int size) {
+        PaginationResponse<Dish> dishPaginationResponse = dishServicePort.listDishes(restaurantId, categoryId, page, size);
+        return dishPaginationResponse.map(dishResponseMapper::toListResponse);
     }
 }

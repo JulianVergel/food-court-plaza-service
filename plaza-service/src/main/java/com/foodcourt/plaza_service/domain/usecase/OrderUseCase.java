@@ -52,7 +52,7 @@ public class OrderUseCase implements IOrderServicePort {
     }
 
     @Override
-    public Page<Order> listOrdersByStatus(String status, int page, int size) {
+    public PaginationResponse<Order> listOrdersByStatus(String status, int page, int size) {
         Long employeeId = userContextProviderPort.getAuthenticatedUserId();
         Long restaurantId = employeePersistencePort.findRestaurantIdByEmployeeId(employeeId);
         PaginationRequest paginationRequest = new PaginationRequest(page, size);

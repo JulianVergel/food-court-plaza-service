@@ -9,17 +9,17 @@ import java.util.stream.Collectors;
 
 @Getter
 @AllArgsConstructor
-public class Page<T> {
+public class PaginationResponse<T> {
     private List<T> content;
     private long totalElements;
     private int totalPages;
     private int pageNumber;
     private int pageSize;
 
-    public <U> Page<U> map(Function<? super T, ? extends U> converter) {
+    public <U> PaginationResponse<U> map(Function<? super T, ? extends U> converter) {
         List<U> convertedContent = this.content.stream()
                 .map(converter)
                 .collect(Collectors.toList());
-        return new Page<>(convertedContent, this.totalElements, this.totalPages, this.pageNumber, this.pageSize);
+        return new PaginationResponse<>(convertedContent, this.totalElements, this.totalPages, this.pageNumber, this.pageSize);
     }
 }

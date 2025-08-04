@@ -6,7 +6,7 @@ import com.foodcourt.plaza_service.domain.exception.NotRestaurantOwnerException;
 import com.foodcourt.plaza_service.domain.exception.RestaurantNotFoundException;
 import com.foodcourt.plaza_service.domain.exception.DishNotFoundException;
 import com.foodcourt.plaza_service.domain.model.Dish;
-import com.foodcourt.plaza_service.domain.model.Page;
+import com.foodcourt.plaza_service.domain.model.PaginationResponse;
 import com.foodcourt.plaza_service.domain.model.PaginationRequest;
 import com.foodcourt.plaza_service.domain.model.Restaurant;
 import com.foodcourt.plaza_service.domain.spi.ICategoryPersistencePort;
@@ -68,7 +68,7 @@ public class DishUseCase implements IDishServicePort {
     }
 
     @Override
-    public Page<Dish> listDishes(Long restaurantId, Long categoryId, int page, int size) {
+    public PaginationResponse<Dish> listDishes(Long restaurantId, Long categoryId, int page, int size) {
         PaginationRequest paginationRequest = new PaginationRequest(page, size);
         return dishPersistencePort.listDishesByRestaurant(restaurantId, categoryId, paginationRequest);
     }

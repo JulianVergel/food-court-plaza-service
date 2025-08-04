@@ -6,7 +6,7 @@ import com.foodcourt.plaza_service.application.handler.IRestaurantHandler;
 import com.foodcourt.plaza_service.application.mapper.request.IRestaurantRequestMapper;
 import com.foodcourt.plaza_service.application.mapper.response.IRestaurantResponseMapper;
 import com.foodcourt.plaza_service.domain.api.IRestaurantServicePort;
-import com.foodcourt.plaza_service.domain.model.Page;
+import com.foodcourt.plaza_service.domain.model.PaginationResponse;
 import com.foodcourt.plaza_service.domain.model.Restaurant;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +29,8 @@ public class RestaurantHandler implements IRestaurantHandler {
     }
 
     @Override
-    public Page<RestaurantListResponseDto> listRestaurants(int page, int size) {
-        Page<Restaurant> restaurantPage = restaurantServicePort.listRestaurants(page, size);
-        return restaurantPage.map(restaurantResponseMapper::toListResponse);
+    public PaginationResponse<RestaurantListResponseDto> listRestaurants(int page, int size) {
+        PaginationResponse<Restaurant> restaurantPaginationResponse = restaurantServicePort.listRestaurants(page, size);
+        return restaurantPaginationResponse.map(restaurantResponseMapper::toListResponse);
     }
 }

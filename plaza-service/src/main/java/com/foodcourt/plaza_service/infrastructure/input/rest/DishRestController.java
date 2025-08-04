@@ -5,7 +5,7 @@ import com.foodcourt.plaza_service.application.dto.request.DishRequestDto;
 import com.foodcourt.plaza_service.application.dto.request.DishUpdateRequestDto;
 import com.foodcourt.plaza_service.application.dto.response.DishListResponseDto;
 import com.foodcourt.plaza_service.application.handler.IDishHandler;
-import com.foodcourt.plaza_service.domain.model.Page;
+import com.foodcourt.plaza_service.domain.model.PaginationResponse;
 import com.foodcourt.plaza_service.infrastructure.input.doc.StandardApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -65,7 +65,7 @@ public class DishRestController {
     })
     @GetMapping("/")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<DishListResponseDto>> listDishes(
+    public ResponseEntity<PaginationResponse<DishListResponseDto>> listDishes(
             @Parameter(description = RESTAURANT_ID_PARAM_DESCRIPTION) @RequestParam Long restaurantId,
             @Parameter(description = CATEGORY_ID_PARAM_DESCRIPTION) @RequestParam(required = false) Long categoryId,
             @Parameter(description = PAGE_PARAM_DESCRIPTION) @RequestParam(defaultValue = PAGE_DEFAULT_VALUE) int page,
