@@ -1,9 +1,7 @@
 package com.foodcourt.plaza_service.domain.usecase;
 
 import com.foodcourt.plaza_service.domain.exception.*;
-import com.foodcourt.plaza_service.domain.model.Order;
-import com.foodcourt.plaza_service.domain.model.OrderDish;
-import com.foodcourt.plaza_service.domain.model.Traceability;
+import com.foodcourt.plaza_service.domain.model.*;
 import com.foodcourt.plaza_service.domain.spi.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -237,5 +235,62 @@ class OrderUseCaseTest {
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
         verify(orderPersistencePort).saveOrder(orderCaptor.capture());
         assertEquals("ENTREGADO", orderCaptor.getValue().getStatus());
+    }
+
+    @Test
+    void testCancelOrder_FailsWhenUserIsNotOrderOwner() {
+        Long orderId = 1L;
+        Long orderCustomerId = 5L;
+        Long differentCustomerId = 99L; // Un cliente diferente
+        Order pendingOrder = new Order(orderId, orderCustomerId, LocalDate.now(), "PENDIENTE", null, 31L, null);
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(differentCustomerId);
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(pendingOrder));
+
+        assertThrows(UserCanNotCancelOrderException.class, () -> orderUseCase.cancelOrder(orderId));
+    }
+
+    @Test
+    void testCancelOrder_FailsWhenOrderIsNotPending() {
+        Long orderId = 1L;
+        Long customerId = 5L;
+        Order readyOrder = new Order(orderId, customerId, LocalDate.now(), "LISTO", 66L, 31L, "1234");
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(customerId);
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(readyOrder));
+
+        assertThrows(OrderCannotBeCanceledException.class, () -> orderUseCase.cancelOrder(orderId));
+    }
+
+    @Test
+    void testCreateOrder_FailsWhenClientHasAnActiveOrder() {
+        Long customerId = 10L;
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(customerId);
+        when(orderPersistencePort.existsByCustomerIdAndStatusIn(eq(customerId), anyList())).thenReturn(true);
+
+        assertThrows(ClientHasAnOrderException.class, () -> {
+            orderUseCase.createOrder(new Order(), Collections.emptyList());
+        });
+    }
+
+    @Test
+    void testListOrdersByStatus_Success() {
+        String status = "PENDIENTE";
+        int page = 0;
+        int size = 10;
+        Long employeeId = 66L;
+        Long restaurantId = 31L;
+        PaginationResponse<Order> expectedPage = new PaginationResponse<>(Collections.emptyList(), 0L, 0, page, size);
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(employeeId);
+        when(employeePersistencePort.findRestaurantIdByEmployeeId(employeeId)).thenReturn(restaurantId);
+        when(orderPersistencePort.findByRestaurantIdAndStatus(eq(restaurantId), eq(status), any(PaginationRequest.class)))
+                .thenReturn(expectedPage);
+
+        PaginationResponse<Order> result = orderUseCase.listOrdersByStatus(status, page, size);
+
+        verify(employeePersistencePort, times(1)).findRestaurantIdByEmployeeId(employeeId);
+        verify(orderPersistencePort, times(1)).findByRestaurantIdAndStatus(eq(restaurantId), eq(status), any(PaginationRequest.class));
+        assertEquals(expectedPage, result);
     }
 }

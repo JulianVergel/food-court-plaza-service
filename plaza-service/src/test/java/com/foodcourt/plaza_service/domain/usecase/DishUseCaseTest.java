@@ -45,7 +45,7 @@ class DishUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        dish = new Dish(1L, "Plato de Prueba", "Descripción", 10000L, "url.com/img.png", true, 10L, 20L);
+        dish = new Dish(1L, "Plato de Prueba", "Descripción Antigua", 10000L, "url.com/img.png", true, 10L, 20L);
         restaurant = new Restaurant();
         restaurant.setId(10L);
         restaurant.setOwnerUserId(5L);
@@ -232,5 +232,41 @@ class DishUseCaseTest {
 
         verify(dishPersistencePort).listDishesByRestaurant(eq(restaurantId), isNull(), any(PaginationRequest.class));
         assertEquals(expectedPaginationResponse, result);
+    }
+
+    @Test
+    void testUpdateDish_SuccessWhenPriceIsNull() {
+        dishUpdate.setPrice(null); // Simulamos que el precio no viene en la actualización
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(5L);
+        when(dishPersistencePort.findById(1L)).thenReturn(Optional.of(dish));
+        when(restaurantPersistencePort.findById(10L)).thenReturn(Optional.of(restaurant));
+
+        dishUseCase.updateDish(1L, dishUpdate);
+
+        ArgumentCaptor<Dish> dishCaptor = ArgumentCaptor.forClass(Dish.class);
+        verify(dishPersistencePort).saveDish(dishCaptor.capture());
+        Dish capturedDish = dishCaptor.getValue();
+
+        assertEquals("Nueva Descripción", capturedDish.getDescription());
+        assertEquals(10000L, capturedDish.getPrice());
+    }
+
+    @Test
+    void testUpdateDish_SuccessWhenDescriptionIsNull() {
+        dishUpdate.setDescription(null); // Simulamos que la descripción no viene en la actualización
+
+        when(userContextProviderPort.getAuthenticatedUserId()).thenReturn(5L);
+        when(dishPersistencePort.findById(1L)).thenReturn(Optional.of(dish));
+        when(restaurantPersistencePort.findById(10L)).thenReturn(Optional.of(restaurant));
+
+        dishUseCase.updateDish(1L, dishUpdate);
+
+        ArgumentCaptor<Dish> dishCaptor = ArgumentCaptor.forClass(Dish.class);
+        verify(dishPersistencePort).saveDish(dishCaptor.capture());
+        Dish capturedDish = dishCaptor.getValue();
+
+        assertEquals(15000L, capturedDish.getPrice());
+        assertEquals("Descripción Antigua", capturedDish.getDescription());
     }
 }

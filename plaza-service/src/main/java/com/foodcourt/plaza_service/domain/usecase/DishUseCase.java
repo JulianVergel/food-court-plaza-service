@@ -54,8 +54,12 @@ public class DishUseCase implements IDishServicePort {
             throw new IllegalArgumentException(DomainConstants.PRICE_DISH_NOT_VALID_MESSAGE);
         }
 
-        existingDish.setPrice(dishUpdate.getPrice());
-        existingDish.setDescription(dishUpdate.getDescription());
+        if (dishUpdate.getPrice() != null) {
+            existingDish.setPrice(dishUpdate.getPrice());
+        }
+        if (dishUpdate.getDescription() != null) {
+            existingDish.setDescription(dishUpdate.getDescription());
+        }
 
         dishPersistencePort.saveDish(existingDish);
     }
