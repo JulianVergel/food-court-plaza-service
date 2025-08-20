@@ -1,6 +1,8 @@
 package com.foodcourt.plaza_service.infrastructure.exceptionhandler;
 
 import com.foodcourt.plaza_service.domain.exception.*;
+import com.foodcourt.plaza_service.infrastructure.exception.EmployeeNotFoundException;
+import com.foodcourt.plaza_service.infrastructure.exception.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -109,6 +111,20 @@ public class ControllerAdvisor {
     public ResponseEntity<Map<String, String>> handleUserCanNotCancelOrderException(
             UserCanNotCancelOrderException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Collections.singletonMap(MESSAGE, ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmployeeNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleEmployeeNotFoundException(
+            EmployeeNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Collections.singletonMap(MESSAGE, ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserNotFoundException(
+            UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Collections.singletonMap(MESSAGE, ex.getMessage()));
     }
 }

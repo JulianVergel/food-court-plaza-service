@@ -5,17 +5,20 @@ import com.foodcourt.plaza_service.application.dto.request.DishRequestDto;
 import com.foodcourt.plaza_service.application.dto.request.DishUpdateRequestDto;
 import com.foodcourt.plaza_service.application.dto.response.DishListResponseDto;
 import com.foodcourt.plaza_service.application.handler.IDishHandler;
+import com.foodcourt.plaza_service.domain.model.PaginationResponse;
+import com.foodcourt.plaza_service.infrastructure.input.doc.StandardApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import static com.foodcourt.plaza_service.infrastructure.input.doc.SwaggerConstants.*;
 
 @RestController
 @RequestMapping("/dishes")
@@ -24,12 +27,9 @@ public class DishRestController {
 
     private final IDishHandler dishHandler;
 
-    @Operation(summary = "Crear un nuevo plato")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Plato creado", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Acceso denegado, rol incorrecto o no es propietario del restaurante", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Restaurante o categoría no encontrados", content = @Content)
-    })
+    @Operation(summary = DISH_CREATE_SUMMARY)
+    @ApiResponse(responseCode = "201", description = RESPONSE_201_DESCRIPTION, content = @Content)
+    @StandardApiResponses
     @PostMapping("/")
     @PreAuthorize("hasAuthority('ROLE_Propietario')")
     public ResponseEntity<Void> saveDish(@RequestBody DishRequestDto dishRequestDto){
@@ -37,12 +37,9 @@ public class DishRestController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @Operation(summary = "Actualizar un plato existente")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Plato actualizado", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Acceso denegado, no es propietario del restaurante", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Plato no encontrado", content = @Content)
-    })
+    @Operation(summary = DISH_UPDATE_SUMMARY)
+    @ApiResponse(responseCode = "200", description = RESPONSE_200_DESCRIPTION, content = @Content)
+    @StandardApiResponses
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_Propietario')")
     public ResponseEntity<Void> updateDish(@PathVariable Long id, @RequestBody DishUpdateRequestDto dishUpdateRequestDto) {
@@ -50,12 +47,9 @@ public class DishRestController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Habilitar o deshabilitar un plato")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Estado del plato actualizado", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Acceso denegado, no es propietario del restaurante", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Plato no encontrado", content = @Content)
-    })
+    @Operation(summary = DISH_ENABLE_DISABLE_SUMMARY)
+    @ApiResponse(responseCode = "200", description = RESPONSE_200_DESCRIPTION, content = @Content)
+    @StandardApiResponses
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_Propietario')")
     public ResponseEntity<Void> enableDisableDish(@PathVariable Long id, @RequestBody DishEnableDisableRequestDto dishEnableDisableRequestDto) {
@@ -63,19 +57,19 @@ public class DishRestController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Listar los platos de un restaurante")
+    @Operation(summary = DISH_LIST_SUMMARY)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Platos listados correctamente", content = @Content),
-            @ApiResponse(responseCode = "401", description = "No autorizado", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Restaurante no encontrado", content = @Content)
+            @ApiResponse(responseCode = "200", description = RESPONSE_200_DESCRIPTION, content = @Content),
+            @ApiResponse(responseCode = "401", description = RESPONSE_401_DESCRIPTION, content = @Content),
+            @ApiResponse(responseCode = "404", description = RESPONSE_404_DESCRIPTION, content = @Content)
     })
     @GetMapping("/")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<DishListResponseDto>> listDishes(
-            @Parameter(description = "ID del restaurante del que se quieren listar los platos") @RequestParam Long restaurantId,
-            @Parameter(description = "ID de la categoría para filtrar los platos (opcional)") @RequestParam(required = false) Long categoryId,
-            @Parameter(description = "Número de la página a obtener") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Número de elementos por página") @RequestParam(defaultValue = "10") int size
+    public ResponseEntity<PaginationResponse<DishListResponseDto>> listDishes(
+            @Parameter(description = RESTAURANT_ID_PARAM_DESCRIPTION) @RequestParam Long restaurantId,
+            @Parameter(description = CATEGORY_ID_PARAM_DESCRIPTION) @RequestParam(required = false) Long categoryId,
+            @Parameter(description = PAGE_PARAM_DESCRIPTION) @RequestParam(defaultValue = PAGE_DEFAULT_VALUE) int page,
+            @Parameter(description = SIZE_PARAM_DESCRIPTION) @RequestParam(defaultValue = SIZE_DEFAULT_VALUE) int size
     ) {
         return ResponseEntity.ok(dishHandler.listDishes(restaurantId, categoryId, page, size));
     }

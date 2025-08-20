@@ -1,6 +1,7 @@
 package com.foodcourt.plaza_service.infrastructure.output.feign.adapter;
 
 import com.foodcourt.plaza_service.domain.spi.IEmployeePersistencePort;
+import com.foodcourt.plaza_service.infrastructure.exception.EmployeeNotFoundException;
 import com.foodcourt.plaza_service.infrastructure.output.feign.client.IUserFeignClient;
 import com.foodcourt.plaza_service.infrastructure.output.feign.dto.response.UserResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ public class EmployeeJpaAdapter implements IEmployeePersistencePort {
     public Long findRestaurantIdByEmployeeId(Long employeeId) {
         UserResponseDto employee = userFeignClient.getUserById(employeeId);
         if (employee == null) {
-            throw new RuntimeException(EMPLOYEE_NOT_FOUND_MESSAGE);
+            throw new EmployeeNotFoundException();
         }
         return employee.getRestaurantId();
     }

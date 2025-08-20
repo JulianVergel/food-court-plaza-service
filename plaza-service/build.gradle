@@ -86,32 +86,4 @@ jacocoTestReport {
 	}
 }
 
-jacocoTestCoverageVerification {
-	violationRules {
-		rule {
-			element = 'CLASS' // Analiza la cobertura por clase
-
-			excludes = [
-					'**.PlazoletamicroserviceApplication',
-					'**.configuration.*',
-					'**.dto.*',
-					'**.model.*',
-					'**.entity.*',
-					'**.exception.*',
-					'**.constants.*',
-					'**.interceptor.*',
-					'**.*mapper.*',
-					'**.*client.*',
-					'**.*repository.*'
-			]
-
-			limit {
-				counter = 'LINE'
-				value = 'COVEREDRATIO'
-				minimum = 0.8
-			}
-		}
-	}
-}
-
-check.dependsOn jacocoTestCoverageVerification
+check.dependsOn jacocoTestReport

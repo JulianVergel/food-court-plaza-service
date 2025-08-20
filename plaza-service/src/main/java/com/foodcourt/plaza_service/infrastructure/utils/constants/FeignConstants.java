@@ -5,6 +5,7 @@ public class FeignConstants {
         throw new IllegalStateException("Utility class");
     }
 
+    public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String OWNER_ROLE_NAME = "Propietario";
     public static final String USER_NOT_FOUND_MESSAGE = "Usuario no encontrado ";
     public static final String EMPLOYEE_NOT_FOUND_MESSAGE = "Empleado no encontrado";

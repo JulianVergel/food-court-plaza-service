@@ -4,16 +4,19 @@ import com.foodcourt.plaza_service.application.dto.request.OrderDeliverRequestDt
 import com.foodcourt.plaza_service.application.dto.request.OrderRequestDto;
 import com.foodcourt.plaza_service.application.dto.response.OrderResponseDto;
 import com.foodcourt.plaza_service.application.handler.IOrderHandler;
+import com.foodcourt.plaza_service.domain.model.PaginationResponse;
+import com.foodcourt.plaza_service.infrastructure.input.doc.StandardApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import static com.foodcourt.plaza_service.infrastructure.input.doc.SwaggerConstants.*;
 
 @RestController
 @RequestMapping("/orders")
@@ -22,12 +25,9 @@ public class OrderRestController {
 
     private final IOrderHandler orderHandler;
 
-    @Operation(summary = "Realizar un pedido")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Pedido creado", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Acceso denegado, rol incorrecto o no es cliente", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Restaurante o plato no encontrados", content = @Content)
-    })
+    @Operation(summary = ORDER_CREATE_SUMMARY)
+    @ApiResponse(responseCode = "201", description = RESPONSE_201_DESCRIPTION, content = @Content)
+    @StandardApiResponses
     @PostMapping("/")
     @PreAuthorize("hasAuthority('ROLE_Cliente')")
     public ResponseEntity<Void> createOrder(@RequestBody OrderRequestDto orderRequestDto) {
@@ -35,29 +35,22 @@ public class OrderRestController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @Operation(summary = "Listar pedidos")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pedidos listados correctamente", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Acceso denegado, rol incorrecto o no es empleado", content = @Content),
-            @ApiResponse(responseCode = "404", description = "No se encontraron pedidos", content = @Content)
-    })
+    @Operation(summary = ORDER_LIST_SUMMARY)
+    @ApiResponse(responseCode = "200", description = RESPONSE_200_DESCRIPTION, content = @Content)
+    @StandardApiResponses
     @GetMapping("/")
     @PreAuthorize("hasAuthority('ROLE_Empleado')")
-    public ResponseEntity<Page<OrderResponseDto>> listOrdersByStatus(
-            @RequestParam String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+    public ResponseEntity<PaginationResponse<OrderResponseDto>> listOrdersByStatus(
+            @Parameter(description = STATUS_PARAM_DESCRIPTION) @RequestParam String status,
+            @Parameter(description = PAGE_PARAM_DESCRIPTION) @RequestParam(defaultValue = PAGE_DEFAULT_VALUE) int page,
+            @Parameter(description = SIZE_PARAM_DESCRIPTION) @RequestParam(defaultValue = SIZE_DEFAULT_VALUE) int size
     ) {
         return ResponseEntity.ok(orderHandler.listOrdersByStatus(status, page, size));
     }
 
-    @Operation(summary = "Asignarse a un pedido y cambiar estado a 'en preparación'")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pedido asignado y actualizado", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Acceso denegado, rol incorrecto", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Pedido no encontrado", content = @Content),
-            @ApiResponse(responseCode = "409", description = "El pedido no está en estado pendiente", content = @Content)
-    })
+    @Operation(summary = ORDER_ASSIGN_SUMMARY)
+    @ApiResponse(responseCode = "200", description = RESPONSE_200_DESCRIPTION, content = @Content)
+    @StandardApiResponses
     @PatchMapping("/{id}/assign")
     @PreAuthorize("hasAuthority('ROLE_Empleado')")
     public ResponseEntity<Void> assignOrderToEmployee(@PathVariable Long id) {
@@ -65,13 +58,9 @@ public class OrderRestController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Cambiar estado a 'listo' y mandar sms")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pedido actualizado y mensaje enviado", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Acceso denegado, rol incorrecto", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Pedido no encontrado", content = @Content),
-            @ApiResponse(responseCode = "409", description = "El pedido no está en estado 'en preparación'", content = @Content)
-    })
+    @Operation(summary = ORDER_READY_SUMMARY)
+    @ApiResponse(responseCode = "200", description = RESPONSE_200_DESCRIPTION, content = @Content)
+    @StandardApiResponses
     @PatchMapping("/{id}/ready")
     @PreAuthorize("hasAuthority('ROLE_Empleado')")
     public ResponseEntity<Void> notifyOrderReady(@PathVariable Long id) {
@@ -79,29 +68,19 @@ public class OrderRestController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Cambiar estado a 'Entregado'")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pedido actualizado", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Acceso denegado, rol incorrecto", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Pedido no encontrado", content = @Content),
-            @ApiResponse(responseCode = "409", description = "El pedido no está en estado 'listo'", content = @Content)
-    })
+    @Operation(summary = ORDER_DELIVER_SUMMARY)
+    @ApiResponse(responseCode = "200", description = RESPONSE_200_DESCRIPTION, content = @Content)
+    @StandardApiResponses
     @PatchMapping("/{id}/deliver")
     @PreAuthorize("hasAuthority('ROLE_Empleado')")
-    public ResponseEntity<Void> deliverOrder(
-            @PathVariable Long id,
-            @RequestBody OrderDeliverRequestDto orderDeliverRequestDto) {
+    public ResponseEntity<Void> deliverOrder(@PathVariable Long id, @RequestBody OrderDeliverRequestDto orderDeliverRequestDto) {
         orderHandler.deliverOrder(id, orderDeliverRequestDto);
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Cambiar estado a 'Cancelado'")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pedido cancelado", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Acceso denegado, rol incorrecto", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Pedido no encontrado", content = @Content),
-            @ApiResponse(responseCode = "409", description = "El pedido no está en estado 'Pendiente'", content = @Content)
-    })
+    @Operation(summary = ORDER_CANCEL_SUMMARY)
+    @ApiResponse(responseCode = "200", description = RESPONSE_200_DESCRIPTION, content = @Content)
+    @StandardApiResponses
     @PatchMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('ROLE_Cliente')")
     public ResponseEntity<Void> cancelOrder(@PathVariable Long id) {

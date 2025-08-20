@@ -2,22 +2,25 @@ package com.foodcourt.plaza_service.infrastructure.output.jpa.adapter;
 
 import com.foodcourt.plaza_service.domain.model.Order;
 import com.foodcourt.plaza_service.domain.model.OrderDish;
+import com.foodcourt.plaza_service.domain.model.PaginationResponse;
+import com.foodcourt.plaza_service.domain.model.PaginationRequest;
 import com.foodcourt.plaza_service.domain.spi.IOrderPersistencePort;
 import com.foodcourt.plaza_service.infrastructure.output.jpa.entity.DishEntity;
 import com.foodcourt.plaza_service.infrastructure.output.jpa.entity.OrderDishEntity;
 import com.foodcourt.plaza_service.infrastructure.output.jpa.entity.OrderDishPK;
 import com.foodcourt.plaza_service.infrastructure.output.jpa.entity.OrderEntity;
 import com.foodcourt.plaza_service.infrastructure.output.jpa.mapper.IOrderEntityMapper;
+import com.foodcourt.plaza_service.infrastructure.output.jpa.mapper.PaginationMapper;
 import com.foodcourt.plaza_service.infrastructure.output.jpa.repository.IOrderDishJpaRepository;
 import com.foodcourt.plaza_service.infrastructure.output.jpa.repository.IOrderJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,7 +53,7 @@ public class OrderJpaAdapter implements IOrderPersistencePort {
             dishEntity.setId(orderDish.getDishId());
 
             return new OrderDishEntity(pk, orderEntity, dishEntity, orderDish.getQuantity());
-        }).collect(Collectors.toList());
+        }).toList();
 
         orderDishRepository.saveAll(orderDishEntities);
     }
@@ -61,9 +64,12 @@ public class OrderJpaAdapter implements IOrderPersistencePort {
     }
 
     @Override
-    public Page<Order> findByRestaurantIdAndStatus(Long restaurantId, String status, Pageable pageable) {
-        Page<OrderEntity> orderEntityPage = orderRepository.findByRestaurantIdAndStatus(restaurantId, status, pageable);
-        return orderEntityPage.map(orderEntityMapper::toOrder);
+    public PaginationResponse<Order> findByRestaurantIdAndStatus(Long restaurantId, String status, PaginationRequest paginationRequest) {
+        Pageable pageable = PageRequest.of(paginationRequest.getPageNumber(), paginationRequest.getPageSize());
+
+        Page<OrderEntity> springPage = orderRepository.findByRestaurantIdAndStatus(restaurantId, status, pageable);
+
+        return PaginationMapper.toDomainPage(springPage, orderEntityMapper::toOrder);
     }
 
     @Override
